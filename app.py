@@ -33,7 +33,98 @@ st.warning(
     to explain **how total angular momentum can add up to 4, 2, and 0**, not to claim a unique microscopic snapshot.
     """
 )
+st.divider()
 
+# ==========================================
+# MAIN SECTION 4: THE FIRST TRANSITION (4 -> 2)
+# ==========================================
+st.header("4. The First Transition (J = 4 \u2192 J = 2)")
+st.write(
+    "This section focuses on the first gamma emission itself. "
+    "The goal is to connect the intuitive valence-coupling picture to the dominant selection rule "
+    "and to the measured angular correlation."
+)
+
+st.info(
+    """
+    **Interpretation note**
+
+    The drawings below are still cartoons. They are meant to explain:
+    1. how an excited state can change from total **J = 4** to **J = 2**,
+    2. why this is naturally associated with a dominant **E2** transition,
+    3. and why detecting the first gamma defines the axis used in the angular-correlation measurement.
+
+    They are not literal snapshots of nucleons rotating in space.
+    """
+)
+
+col4_a, col4_b, col4_c = st.columns(3)
+
+with col4_a:
+    st.subheader("4.1. Recoupling and Auswahlregeln")
+    st.write(
+        "In the dominant picture, the first gamma connects a state whose valence-space coupling gives total "
+        "**J = 4** to one whose coupling gives **J = 2**. "
+        "For the observed cascade, the natural dominant multipolarity is **E2**: the photon carries away "
+        "2 units of angular momentum, while the parity remains unchanged."
+    )
+    st.plotly_chart(
+        draw_transition_rule_cartoon(),
+        use_container_width=True,
+        key="transition_rule_cartoon"
+    )
+
+with col4_b:
+    st.subheader("4.2. How \u03b3\u2081 defines the measurement axis")
+    st.write(
+        "For an initially unpolarized source, there is no preferred axis beforehand. "
+        "Once the first gamma **\u03b3\u2081** is detected, its direction becomes the reference axis. "
+        "The second gamma **\u03b3\u2082** is then studied relative to that axis at an angle **\u03b8**."
+    )
+    st.plotly_chart(
+        draw_axis_selection_cartoon(),
+        use_container_width=True,
+        key="axis_selection_cartoon"
+    )
+
+with col4_c:
+    st.subheader("4.3. Angular emission probability")
+    st.write(
+        "For the standard 4\u207a \u2192 2\u207a \u2192 0\u207a cascade of Co-60 / Ni-60, the coincidence probability depends on the angle "
+        "between the two detected gamma rays. "
+        "In this simplified view, the correlation is slightly stronger for **0\u00b0** and **180\u00b0** than for **90\u00b0**."
+    )
+    st.plotly_chart(
+        plot_angular_probability(),
+        use_container_width=True,
+        key="angular_probability_cartoon"
+    )
+
+st.write("---")
+
+st.subheader("4.4. From configuration change to angular correlation")
+st.write(
+    "In the intuitive shell-model cartoon used throughout this app, the first transition is not best thought of as "
+    "one neutron simply 'falling back' in a classical orbit. Instead, the nucleus changes from one **many-body coupling** "
+    "with total **J = 4** to another with total **J = 2**. The emitted photon carries away the missing angular momentum."
+)
+st.write(
+    "Because the first observed gamma fixes a reference direction, the intermediate state is no longer treated as completely "
+    "directionless in the coincidence measurement. That is why the second gamma is not emitted with equal probability into all angles "
+    "relative to the first one."
+)
+st.write(
+    "For this cascade, the standard angular-correlation form is:"
+)
+st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
+st.write(
+    "This means the coincidence rate is lowest at **90\u00b0** and highest at **180\u00b0**, with a modest anisotropy."
+)
+
+st.caption(
+    "Reading guide: the new section should be understood as a bridge between the intuitive nucleon-coupling cartoons "
+    "and the experimentally measured angular-correlation curve."
+)
 # --- HELPER FUNCTION: 2D SHELL SCHEMATIC ---
 def draw_2d_shell(title_text, num_in=3, num_out=1):
     fig_shell = go.Figure()
@@ -45,7 +136,7 @@ def draw_2d_shell(title_text, num_in=3, num_out=1):
     )
     fig_shell.add_annotation(
         x=0, y=0,
-        text="<b>Approximate Core<br>(28p, 28n)<br>J = 0</b>",
+        text="<b>Stable Core<br>(28p, 28n)<br>Spin = 0</b>",
         showarrow=False,
         font=dict(size=14, color="black")
     )
@@ -57,7 +148,7 @@ def draw_2d_shell(title_text, num_in=3, num_out=1):
     )
     fig_shell.add_annotation(
         x=0, y=3.7,
-        text="2p3/2 occupancy cartoon",
+        text="2p3/2 Orbital",
         showarrow=False,
         font=dict(color="cyan", size=14)
     )
@@ -68,13 +159,12 @@ def draw_2d_shell(title_text, num_in=3, num_out=1):
     )
     fig_shell.add_annotation(
         x=0, y=5.2,
-        text="1f5/2 occupancy cartoon",
+        text="1f5/2 Orbital",
         showarrow=False,
         font=dict(color="lime", size=14)
     )
     
-    # Determine neutron positions dynamically based on state
-    # These dots indicate occupancy count only, not real spatial positions.
+    # Dots indicate occupancy count only, not real spatial positions.
     if num_in == 4:
         theta_in = [np.pi/4, 3*np.pi/4, 5*np.pi/4, 7*np.pi/4]
     elif num_in == 3:
@@ -325,7 +415,245 @@ def plot_3d_vectors(v1, v2, target_mag, title):
         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
     )
     return fig
+def draw_transition_rule_cartoon():
+    fig = go.Figure()
 
+    # Left: before (J=4)
+    xL, yL = -3.8, 0.0
+    fig.add_trace(go.Scatter(
+        x=[xL, xL], y=[yL, yL+1.8],
+        mode='lines+markers',
+        line=dict(color='cyan', width=7),
+        marker=dict(size=6, color='cyan'),
+        name='Effective j = 1.5'
+    ))
+    fig.add_trace(go.Scatter(
+        x=[xL, xL+1.7], y=[yL+1.8, yL+3.0],
+        mode='lines+markers',
+        line=dict(color='lime', width=7),
+        marker=dict(size=6, color='lime'),
+        name='Effective j = 2.5'
+    ))
+    fig.add_trace(go.Scatter(
+        x=[xL-0.25, xL-0.25], y=[yL, yL+4.0],
+        mode='lines+markers',
+        line=dict(color='yellow', width=8),
+        marker=dict(size=6, color='yellow'),
+        name='Total J'
+    ))
+
+    # Right: after (J=2)
+    xR, yR = 3.0, 0.0
+    fig.add_trace(go.Scatter(
+        x=[xR, xR], y=[yR, yR+1.8],
+        mode='lines+markers',
+        line=dict(color='cyan', width=7),
+        marker=dict(size=6, color='cyan'),
+        showlegend=False
+    ))
+    fig.add_trace(go.Scatter(
+        x=[xR, xR+2.0], y=[yR+1.8, yR+1.9],
+        mode='lines+markers',
+        line=dict(color='lime', width=7),
+        marker=dict(size=6, color='lime'),
+        showlegend=False
+    ))
+    fig.add_trace(go.Scatter(
+        x=[xR-0.25, xR-0.25], y=[yR, yR+2.0],
+        mode='lines+markers',
+        line=dict(color='yellow', width=8),
+        marker=dict(size=6, color='yellow'),
+        showlegend=False
+    ))
+
+    # Gamma arrow between the two states
+    fig.add_annotation(
+        x=0.7, y=2.45, ax=-0.7, ay=2.45,
+        xref='x', yref='y', axref='x', ayref='y',
+        showarrow=True, arrowhead=3, arrowsize=1.3, arrowwidth=3,
+        arrowcolor='orange'
+    )
+    fig.add_annotation(
+        x=0, y=2.9,
+        text="<b>γ₁ = 1173 keV</b><br>dominant E2<br>carries away 2ħ",
+        showarrow=False,
+        font=dict(size=13, color='orange')
+    )
+
+    # Labels
+    fig.add_annotation(
+        x=xL-0.2, y=4.45,
+        text="<b>Before:</b> example coupling to J = 4",
+        showarrow=False, font=dict(size=13)
+    )
+    fig.add_annotation(
+        x=xR-0.1, y=4.45,
+        text="<b>After:</b> example coupling to J = 2",
+        showarrow=False, font=dict(size=13)
+    )
+    fig.add_annotation(
+        x=-3.2, y=-0.55,
+        text="same valence space<br>different coupling",
+        showarrow=False, font=dict(size=12)
+    )
+    fig.add_annotation(
+        x=3.5, y=-0.55,
+        text="same valence space<br>different coupling",
+        showarrow=False, font=dict(size=12)
+    )
+    fig.add_annotation(
+        x=0, y=0.45,
+        text="<b>Selection rule cartoon</b><br>ΔJ = 2, parity unchanged",
+        showarrow=False, font=dict(size=13)
+    )
+
+    fig.update_layout(
+        title="Transition cartoon: recoupling from J = 4 to J = 2",
+        xaxis=dict(visible=False, range=[-5.5, 5.5]),
+        yaxis=dict(visible=False, range=[-1.0, 5.0], scaleanchor="x", scaleratio=1),
+        height=360,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=0, t=40, b=0),
+        legend=dict(yanchor="top", y=0.98, xanchor="left", x=0.02)
+    )
+    return fig
+
+
+def draw_axis_selection_cartoon():
+    fig = go.Figure()
+
+    # Nucleus
+    fig.add_shape(type="circle", x0=-0.6, y0=-0.6, x1=0.6, y1=0.6,
+                  fillcolor="lightgray", line_color="black")
+    fig.add_annotation(
+        x=0, y=0,
+        text="<b>Intermediate<br>state</b>",
+        showarrow=False, font=dict(size=13)
+    )
+
+    # First gamma defines axis
+    fig.add_annotation(
+        x=4.0, y=0.0, ax=0.7, ay=0.0,
+        xref='x', yref='y', axref='x', ayref='y',
+        showarrow=True, arrowhead=3, arrowsize=1.4, arrowwidth=3,
+        arrowcolor='orange'
+    )
+    fig.add_annotation(
+        x=2.3, y=0.45,
+        text="<b>detected γ₁</b><br>defines the reference axis",
+        showarrow=False, font=dict(size=13, color='orange')
+    )
+
+    # Dashed axis
+    fig.add_trace(go.Scatter(
+        x=[0.0, 4.5], y=[0.0, 0.0],
+        mode='lines',
+        line=dict(color='orange', width=2, dash='dash'),
+        name='γ₁ axis'
+    ))
+
+    # Candidate gamma2 direction
+    theta = np.deg2rad(60)
+    r = 3.6
+    x2 = r*np.cos(theta)
+    y2 = r*np.sin(theta)
+
+    fig.add_annotation(
+        x=x2, y=y2, ax=0.65, ay=0.0,
+        xref='x', yref='y', axref='x', ayref='y',
+        showarrow=True, arrowhead=3, arrowsize=1.2, arrowwidth=3,
+        arrowcolor='deepskyblue'
+    )
+    fig.add_annotation(
+        x=2.2, y=2.2,
+        text="<b>γ₂</b> emitted at angle θ",
+        showarrow=False, font=dict(size=13, color='deepskyblue')
+    )
+
+    # Angle arc
+    arc_t = np.linspace(0, theta, 80)
+    fig.add_trace(go.Scatter(
+        x=1.2*np.cos(arc_t), y=1.2*np.sin(arc_t),
+        mode='lines',
+        line=dict(color='magenta', width=3),
+        name='θ'
+    ))
+    fig.add_annotation(
+        x=1.0*np.cos(theta/2)+0.15,
+        y=1.0*np.sin(theta/2)+0.1,
+        text="θ",
+        showarrow=False,
+        font=dict(size=16, color='magenta')
+    )
+
+    fig.add_annotation(
+        x=0, y=-1.6,
+        text="The source is initially unpolarized.<br>Once γ₁ is observed, its direction tags an axis for the γ₂ measurement.",
+        showarrow=False, font=dict(size=12)
+    )
+
+    fig.update_layout(
+        title="How the first gamma sets the axis for the angular-correlation measurement",
+        xaxis=dict(visible=False, range=[-1.8, 5.2]),
+        yaxis=dict(visible=False, range=[-2.1, 3.2], scaleanchor="x", scaleratio=1),
+        height=360,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=0, t=40, b=0),
+        showlegend=False
+    )
+    return fig
+
+
+def plot_angular_probability():
+    theta_deg = np.linspace(0, 360, 721)
+    theta_rad = np.deg2rad(theta_deg)
+
+    # Standard 60Co / 60Ni correlation function for the 4+ -> 2+ -> 0+ cascade
+    W = 1 + (1/8.0)*(np.cos(theta_rad)**2) + (1/24.0)*(np.cos(theta_rad)**4)
+    W = W / np.max(W)
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatterpolar(
+        r=W,
+        theta=theta_deg,
+        mode='lines',
+        line=dict(color='gold', width=4),
+        fill='toself',
+        fillcolor='rgba(255,215,0,0.30)',
+        name='Relative probability'
+    ))
+
+    # Mark 0, 90, 180
+    for ang, label in [(0, "max"), (90, "min"), (180, "max")]:
+        rr = 1 + (1/8.0)*(np.cos(np.deg2rad(ang))**2) + (1/24.0)*(np.cos(np.deg2rad(ang))**4)
+        rr = rr / (1 + 1/8.0 + 1/24.0)
+        fig.add_trace(go.Scatterpolar(
+            r=[rr], theta=[ang],
+            mode='markers+text',
+            text=[label],
+            textposition='top center',
+            marker=dict(size=8, color='crimson'),
+            showlegend=False
+        ))
+
+    fig.update_layout(
+        title="Relative angular probability for γ₂ after γ₁ has defined the axis",
+        polar=dict(
+            radialaxis=dict(visible=False, range=[0, 1.05]),
+            angularaxis=dict(
+                direction="counterclockwise",
+                rotation=0
+            )
+        ),
+        height=360,
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=10, r=10, t=50, b=10),
+        showlegend=False
+    )
+    return fig
 
 st.divider()
 
@@ -416,7 +744,8 @@ with col2_b:
 with col2_c:
     st.subheader("2.3. Effective Vector Coupling to J = 2")
     st.write(
-        "In this simplified vector cartoon, the effective j = 1.5 and j = 2.5 contributions are coupled differently so that the total becomes J = 2 instead of J = 4."
+    "In this simplified vector cartoon, the effective j = 1.5 and j = 2.5 contributions are coupled differently so that the total becomes J = 2 instead of J = 4. "
+    "The first gamma can then be understood as carrying away the difference in angular momentum."
     )
     st.plotly_chart(plot_3d_vectors(1.5, 2.5, 2.0, "Effective Coupling: 1.5 + 2.5 -> J = 2"), use_container_width=True, key="vector_2")
 
@@ -438,7 +767,7 @@ with col2_e:
         "Instead, the point is that the same two effective j = 2.5 contributions can be coupled to a smaller total value, here J = 2, as another allowed basis component."
     )
     st.write(
-        "The gamma transition is best understood as a change of the many-body coupling from a J = 4 state to a J = 2 state, rather than as a literal mechanical re-orientation."
+    "The gamma transition is best understood as a change of the many-body coupling from a J = 4 state to a J = 2 state, rather than as a literal mechanical re-orientation of rigid neutron arrows."
     )
 
 with col2_f:
