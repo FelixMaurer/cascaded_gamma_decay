@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="Ni-60 Spin Cascades", layout="wide")
 
 st.title("Microscopic Spin States of Ni-60")
-st.write("Visualizing the internal neutron couplings that drive the gamma-gamma cascades [cite: 243-247].")
+st.write("Visualizing the internal neutron couplings that drive the gamma-gamma cascades.")
 
 # --- HELPER FUNCTION: 2D SHELL SCHEMATIC ---
 def draw_2d_shell(title_text):
@@ -53,11 +53,14 @@ def plot_3d_vectors(v1, v2, target_mag, title):
     end_y = v2 * sin_theta
     end_z = v1 + v2 * cos_theta
     
+    # Visual offset for the resultant vector so it doesn't overlap perfectly
+    offset_x = 0.25 
+    
     # Calculate direction for the arrowhead
     norm = np.sqrt(end_y**2 + end_z**2)
     u_dir, v_dir, w_dir = 0, 0, 1 # Default fallback
     if norm > 0:
-        u_dir = end_x / norm
+        u_dir = 0  # Direction remains purely in YZ plane
         v_dir = end_y / norm
         w_dir = end_z / norm
 
@@ -70,12 +73,12 @@ def plot_3d_vectors(v1, v2, target_mag, title):
     fig.add_trace(go.Scatter3d(x=[0, end_x], y=[0, end_y], z=[v1, end_z],
                                mode='lines+markers', name=f'Orbital 2 (j={v2})', line=dict(width=8, color='lime')))
     
-    # Resultant Vector Line (Total Spin)
-    fig.add_trace(go.Scatter3d(x=[0, end_x], y=[0, end_y], z=[0, end_z],
+    # Resultant Vector Line (Total Spin) - Shifted by offset_x
+    fig.add_trace(go.Scatter3d(x=[offset_x, offset_x], y=[0, end_y], z=[0, end_z],
                                mode='lines', name=f'Total Spin = {target_mag}', line=dict(color='yellow', width=8)))
     
-    # Arrowhead (Cone) for Resultant
-    fig.add_trace(go.Cone(x=[end_x], y=[end_y], z=[end_z],
+    # Arrowhead (Cone) for Resultant - Shifted by offset_x
+    fig.add_trace(go.Cone(x=[offset_x], y=[end_y], z=[end_z],
                           u=[u_dir], v=[v_dir], w=[w_dir],
                           sizemode="absolute", sizeref=0.8, anchor="tip",
                           colorscale=[[0, 'yellow'], [1, 'yellow']], showscale=False, name="Direction"))
@@ -92,7 +95,7 @@ st.divider()
 # MAIN SECTION 1: THE INITIAL EXCITED STATE (I=4)
 # ==========================================
 st.header("1. The Initial Excited State (I = 4)")
-st.write("Following the beta decay of Co-60, the Ni-60 nucleus is formed in a highly excited configuration with a total spin of 4[cite: 245].")
+st.write("Following the beta decay of Co-60, the Ni-60 nucleus is formed in a highly excited configuration with a total spin of 4.")
 
 col1_a, col1_b = st.columns([1, 2])
 with col1_a:
@@ -104,7 +107,7 @@ with col1_b:
     st.write("Before adding both shells together, the 3 neutrons in the 2p3/2 orbital must couple. Two neutrons pair up (spin antiparallel) and cancel each other out to 0. This leaves the third unpaired neutron to define the total momentum of this orbital: **j = 1.5**.")
     
     st.subheader("1.3. Coupling the Orbitals to Reach Spin 4")
-    st.write("The unpaired j=1.5 from the 2p3/2 orbital couples with the j=2.5 from the 1f5/2 orbital. To reach the maximum allowed spin of 4, the vectors must align perfectly parallel.")
+    st.write("The unpaired j=1.5 from the 2p3/2 orbital couples with the j=2.5 from the 1f5/2 orbital. To reach the maximum allowed spin of 4, the vectors must align perfectly parallel. *(Note: The yellow resultant vector is visually shifted slightly along the X-axis so it is not hidden behind the components).*")
     st.plotly_chart(plot_3d_vectors(1.5, 2.5, 4.0, "1.5 + 2.5 Re-coupled to 4"), use_container_width=True)
 
 st.divider()
@@ -113,7 +116,7 @@ st.divider()
 # MAIN SECTION 2: THE INTERMEDIATE STATE (I=2)
 # ==========================================
 st.header("2. The Intermediate State (I = 2)")
-st.write("The nucleus emits its first gamma quantum (1173 keV), shedding 2 units of angular momentum in a quadrupole transition[cite: 246, 266]. The neutrons re-align to drop the total nuclear spin to 2.")
+st.write("The nucleus emits its first gamma quantum (1173 keV), shedding 2 units of angular momentum in a quadrupole transition. The neutrons re-align to drop the total nuclear spin to 2.")
 
 col2_a, col2_b = st.columns([1, 2])
 with col2_a:
@@ -132,7 +135,7 @@ st.divider()
 # MAIN SECTION 3: THE I=1 STATE
 # ==========================================
 st.header("3. Alternative Re-coupling (I = 1)")
-st.write("While the actual Ni-60 cascade goes 4-2-0, other configurations or hypothetical cascades (like the 0-1-0 cascade ) require different intermediate states. Here is how those same nucleons can couple to reach a total spin of 1.")
+st.write("While the actual Ni-60 cascade goes 4-2-0, other configurations or hypothetical cascades require different intermediate states. Here is how those same nucleons can couple to reach a total spin of 1.")
 
 col3_a, col3_b = st.columns([1, 2])
 with col3_a:
