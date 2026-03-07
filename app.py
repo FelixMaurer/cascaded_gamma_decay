@@ -37,6 +37,61 @@ st.warning(
 # -------------------------------------------------------------------
 # Helper: 2D shell schematic
 # -------------------------------------------------------------------
+def plot_single_nucleus_first_gamma(mode="m=+2"):
+    theta_deg = np.linspace(0, 360, 721)
+    theta = np.deg2rad(theta_deg)
+    c = np.cos(theta)
+    s = np.sin(theta)
+
+    if mode == "m=0":
+        # E2 quadrupole mode with m = 0
+        W = (c**2) * (s**2)
+        title = "Single oriented nucleus: E2 component m = 0"
+        note = "Pattern: zero on axis and in the equatorial plane; maxima at intermediate angles"
+    elif mode in ["m=+1", "m=-1"]:
+        # E2 quadrupole mode with m = ±1
+        W = 1 - 3*c**2 + 4*c**4
+        title = f"Single oriented nucleus: E2 component {mode}"
+        note = "Pattern: weaker near intermediate angles, stronger toward axis and equator"
+    else:
+        # default: m = ±2, good intuitive stretched example
+        W = 1 - c**4
+        title = "Single oriented nucleus: E2 component m = +2"
+        note = "Pattern: zero along the quantization axis, strongest around the equator"
+
+    W = W / np.max(W)
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatterpolar(
+        r=W,
+        theta=theta_deg,
+        mode="lines",
+        line=dict(color="gold", width=4),
+        fill="toself",
+        fillcolor="rgba(255,215,0,0.30)",
+        showlegend=False
+    ))
+
+    fig.update_layout(
+        title=title,
+        polar=dict(
+            radialaxis=dict(visible=False, range=[0, 1.05]),
+            angularaxis=dict(direction="counterclockwise", rotation=90)
+        ),
+        height=340,
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=10, r=10, t=50, b=10),
+        annotations=[
+            dict(
+                text=note + "<br>z-axis = quantization axis",
+                x=0.5, y=-0.12, xref="paper", yref="paper",
+                showarrow=False, font=dict(size=11)
+            )
+        ],
+        showlegend=False
+    )
+    return fig
 def draw_2d_shell(title_text, num_in=3, num_out=1):
     fig_shell = go.Figure()
 
@@ -958,37 +1013,47 @@ with col4_b:
     )
 
 with col4_c:
-    st.subheader("4.3. Angular probability of γ₁ alone")
+    st.subheader("4.3. Single-nucleus angular probability of γ₁")
     st.write(
-        "For an ordinary **unpolarized** Co-60 source, the first gamma by itself has **no preferred direction**. "
-        "So the angular probability for γ₁ alone is **isotropic**: the emission is equally likely in all directions."
+        "Instead of averaging over many nuclei, this panel shows one **single oriented nucleus**. "
+        "To make the angular pattern well-defined, we choose a quantization axis and one example E2 component."
+    )
+    st.write(
+        "A useful illustrative choice is the stretched component **mᵢ = 4 → m_f = 2**, "
+        "for which the emitted first gamma carries the quadrupole component **q = Δm = 2**."
     )
     st.plotly_chart(
-        plot_first_gamma_probability(),
+        plot_single_nucleus_first_gamma(mode="m=+2"),
         use_container_width=True,
-        key="first_gamma_probability"
+        key="single_nucleus_first_gamma"
     )
 
 st.write("---")
-st.subheader("4.4. How the first-emission probability is calculated")
+st.subheader("4.4. Why a single nucleus gives this shape")
 st.write(
-    "The selection rules tell us which **multipolarities** are allowed. They do **not** automatically create an anisotropic pattern for the first gamma. "
-    "To get a directional preference, the emitting nucleus must already be **aligned** or **oriented**, meaning its magnetic substates are not equally populated."
+    "For one nucleus in a definite magnetic substate, the first gamma is emitted relative to that nucleus's own quantization axis. "
+    "The pattern is therefore not spherical. It reflects the angular structure of the **E2 quadrupole field**."
 )
 st.write(
-    "For the unpolarized source used in the standard Co-60 experiment, the first-emission probability is simply:"
+    "In this example we chose the **m = +2** quadrupole component. That component is strongest away from the axis "
+    "and vanishes along it, so the radiation is concentrated around the equatorial region."
 )
-st.latex(r"W_1(\theta)=\frac{1}{4\pi}")
 st.write(
-    "If you normalize the distribution for plotting, this becomes just a constant circle:"
+    "More generally, different allowed values of **Δm = mᵢ - m_f** correspond to different quadrupole components, "
+    "and each component has its own characteristic angular pattern."
 )
-st.latex(r"W_{1,\mathrm{norm}}(\theta)=1")
+
+st.write("---")
+st.subheader("4.5. How the pattern is calculated")
 st.write(
-    "Only for an **aligned** initial state would a single-gamma distribution become anisotropic. "
-    "In that case one writes it as a Legendre-polynomial expansion,"
+    "The selection rules first determine the allowed multipolarity: here the first emission is dominantly **E2**. "
+    "Then, for a chosen single-nucleus substate, one specifies which magnetic component of the quadrupole field is emitted."
 )
-st.latex(r"W(\theta)=A_0\left[1+a_2P_2(\cos\theta)+a_4P_4(\cos\theta)+\cdots\right]")
 st.write(
-    "where the coefficients depend on the alignment of the emitting state and on the multipolarity of the radiation. "
-    "That is the right framework for single-gamma angular distributions — but it is **not** the situation for γ₁ from an ordinary unpolarized Co-60 source."
+    "For the illustrative **m = ±2** quadrupole mode, the angular dependence is:"
+)
+st.latex(r"\frac{dP}{d\Omega} \propto 1-\cos^4\theta")
+st.write(
+    "After normalization, that gives the polar pattern shown above. "
+    "This is the right object to visualize when you want the first emission from **one oriented nucleus**, not yet the bulk sample."
 )
