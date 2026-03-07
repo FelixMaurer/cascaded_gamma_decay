@@ -1,84 +1,98 @@
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
+from scipy.special import legendre
 
-st.set_page_config(page_title="Nickel-60 Nuclear Spin Visualization", layout="wide")
+st.set_page_config(page_title="Gamma-Gamma Angular Correlation Lab", layout="wide")
 
-st.title("Microscopic Origin of Nuclear Spin: $^{60}_{28}\text{Ni}$")
+# --- HEADER & CONTEXT ---
+st.title("Gamma-Gamma Angular Correlation Theory")
+st.write("Visualizing the 4-2-0 Cascade of $^{60}_{28}$Ni [cite: 242, 246]")
 
-# --- SECTION 1: INTRODUCTION ---
-st.header("1. The Nuclear Foundation")
-col1, col2 = st.columns(2)
+# --- SIDEBAR CONTROLS ---
+st.sidebar.header("Transition Parameters")
+coupling_mode = st.sidebar.radio("Neutron Coupling Alternative", 
+                                ["Alternative A (Mixed Shells)", "Alternative B (High Spin Shell)"])
 
-with col1:
+# --- SECTION 1: THE NUCLEUS ---
+st.header("1. The $^{60}$Ni Nucleus Microstate")
+c1, c2 = st.columns([1, 1])
+
+with c1:
+    st.subheader("Shell Configuration")
     st.write("""
-    In the $^{60}\text{Ni}$ nucleus, we distinguish between two groups of nucleons:
-    * **The Stable Core (28 Protons, 28 Neutrons):** This forms a 'magic number' core where all nucleons 
-        are perfectly paired in closed shells, resulting in a net spin of **0**[cite: 149, 271, 272].
-    * **The 4 Valence Neutrons:** These 'extra' neutrons occupy the $fp$-shell orbitals (like $2p_{3/2}$ and $1f_{5/2}$) 
-        and are responsible for the nucleus's total angular momentum $I$[cite: 26, 246, 275].
+    * **The Core ($N=28$):** Perfectly paired neutrons in a closed core. $I_{core} = 0$[cite: 40].
+    * **The Valence Space:** 4 neutrons in the $fp$-shell ($2p_{3/2}$, $1f_{5/2}$) .
     """)
+    if coupling_mode == "Alternative A (Mixed Shells)":
+        st.info("Configuration: $(2p_{3/2})^3 (1f_{5/2})^1$. One neutron promoted to reach $I=4$.")
+        v1, v2 = 1.5, 2.5
+    else:
+        st.info("Configuration: $(2p_{3/2})^2 (1f_{5/2})^2$. Two neutrons coupling in $f_{5/2}$.")
+        v1, v2 = 2.5, 2.5
 
-with col2:
-    # Simple schematic of the nucleus
-    st.info("Core ($I_{core}=0$) + 4 Valence Neutrons $\\rightarrow$ Total Nuclear Spin $I$")
+with c2:
+    # 3D Vector Coupling Plot
+    def plot_vectors(v1_val, v2_val, target):
+        # Law of cosines for angle
+        cos_theta = (target**2 - v1_val**2 - v2_val**2) / (2 * v1_val * v2_val)
+        theta = np.arccos(np.clip(cos_theta, -1, 1))
+        
+        fig = go.Figure()
+        fig.add_trace(go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, v1_val], 
+                                   name='j1', line=dict(color='blue', width=8)))
+        fig.add_trace(go.Scatter3d(x=[0, v2_val*np.sin(theta)], y=[0, 0], z=[v1_val, v1_val + v2_val*np.cos(theta)], 
+                                   name='j2', line=dict(color='green', width=8)))
+        fig.add_trace(go.Scatter3d(x=[0, v2_val*np.sin(theta)], y=[0, 0], z=[0, v1_val + v2_val*np.cos(theta)], 
+                                   name='Resultant I=4', line=dict(color='red', width=5, dash='dash')))
+        fig.update_layout(scene=dict(aspectmode='cube'), margin=dict(l=0, r=0, b=0, t=0))
+        return fig
+
+    st.plotly_chart(plot_vectors(v1, v2, 4.0), use_container_width=True)
 
 st.divider()
 
-# --- SECTION 2: STATES OF MOMENTUM 4 ---
-st.header("2. Generating an Initial State of $I_i = 4$")
+# --- SECTION 2: THE FIRST EMISSION ---
+st.header("2. The First $\gamma$-Emission ($\gamma_1$) [cite: 246]")
 st.write("""
-The excited state of $^{60}\text{Ni}$ starts with a total spin of **$I_i = 4$**. 
-Because nucleons are identical fermions, they must occupy specific orbitals and couple their 
-individual angular momentum vectors ($j$) to reach this sum.
+The transition from $I=4 \\rightarrow I=2$ releases a photon of **1173 keV**.
+Because $\Delta I = 2$, this is a **Quadrupole transition** ($l=2$)[cite: 26, 182].
 """)
 
-def plot_vectors(v1, v2, target_mag, title):
-    # Create vector components
-    # We simplify by placing v1 on z-axis and v2 at an angle to reach target magnitude
-    # Using law of cosines: target^2 = v1^2 + v2^2 + 2*v1*v2*cos(theta)
-    cos_theta = (target_mag**2 - v1**2 - v2**2) / (2 * v1 * v2)
-    sin_theta = np.sqrt(1 - cos_theta**2)
-    
-    fig = go.Figure()
-    # Vector 1
-    fig.add_trace(go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, v1],
-                               mode='lines+markers', name=f'j1 = {v1}', line=dict(width=10)))
-    # Vector 2
-    fig.add_trace(go.Scatter3d(x=[0, v2*sin_theta], y=[0, 0], z=[v1, v1 + v2*cos_theta],
-                               mode='lines+markers', name=f'j2 = {v2}', line=dict(width=10)))
-    # Resultant
-    fig.add_trace(go.Scatter3d(x=[0, v2*sin_theta], y=[0, 0], z=[0, v1 + v2*cos_theta],
-                               mode='lines', name=f'Total I = {target_mag}', line=dict(dash='dash', color='red')))
-    
-    fig.update_layout(title=title, scene=dict(xaxis_title='X', yaxis_title='Y', zaxis_title='Z'))
-    return fig
 
-# --- SECTION 3: VECTOR COUPLING ---
-st.header("3. Intuitive Vector Coupling (Two Alternatives)")
 
-alt1, alt2 = st.columns(2)
+# Mathematical remark
+st.latex(r"W(\vartheta) = 1 + A_2 \cos^2(\vartheta) + A_4 \cos^4(\vartheta) \quad \text{[cite: 300]}")
 
-with alt1:
-    st.subheader("Alternative A: The Mixed Orbital Case")
-    st.write("One neutron in $2p_{3/2}$ ($j=1.5$) and one in $1f_{5/2}$ ($j=2.5$).")
-    st.plotly_chart(plot_vectors(1.5, 2.5, 4.0, "1.5 + 2.5 Coupling"), use_container_width=True)
-    st.caption("Here, the vectors align perfectly parallel to reach the maximum possible sum.")
+# --- SECTION 3: ANGULAR CORRELATION PLOT ---
+st.header("3. Probability Distribution $W(\vartheta)$")
+st.write("""
+When we detect $\gamma_1$ at $\vartheta=0$, we align the nucleus. The probability of 
+detecting $\gamma_2$ is no longer isotropic[cite: 198, 297].
+""")
 
-with alt2:
-    st.subheader("Alternative B: The High-Spin Orbital Case")
-    st.write("Two neutrons both in the $1f_{5/2}$ shell ($j=2.5$ each).")
-    st.plotly_chart(plot_vectors(2.5, 2.5, 4.0, "2.5 + 2.5 Coupling"), use_container_width=True)
-    st.caption("Here, the vectors are slightly 'canted' to sum to 4 instead of the maximum 5.")
+theta_range = np.linspace(0, 2*np.pi, 200)
+# Constants for Co60 from script
+A2 = 1/8  # 
+A4 = 1/24 # 
 
-st.divider()
+def w_theta(t):
+    return 1 + A2 * (np.cos(t)**2) + A4 * (np.cos(t)**4)
 
-# --- FINAL REMARKS ---
+radius = w_theta(theta_range)
+
+fig_polar = go.Figure()
+fig_polar.add_trace(go.Scatterpolar(r=radius, theta=np.degrees(theta_range), 
+                                    mode='lines', fill='toself', name='W(theta)'))
+fig_polar.update_layout(title="Theoretical Angular Correlation (Point-like Detector)")
+st.plotly_chart(fig_polar)
+
 st.warning("""
-**Important Remark:** In a real nucleus, these aren't the only two ways! 
-1. **Configuration Mixing:** The nucleus exists in a *superposition* of these states simultaneously. 
-2. **Pauli Exclusion:** For identical neutrons in the same orbital, certain couplings are forbidden[cite: 98, 99].
-3. **Collective Motion:** The core itself can sometimes contribute slightly via tiny deformations.
+**Note on Configuration:** While we visualize two neutrons coupling, the actual state 
+is a collective 'Configuration Mix.' The 4 neutrons are indistinguishable fermions; 
+we only measure the total angular momentum $I$ of the system [cite: 184-186].
 """)
 
-st.write("Next, the nucleus will emit its first $\gamma$-quantum and drop to an intermediate state of $I=2$[cite: 262, 283].")
+st.subheader("Next Experimental Step:")
+st.write("Would you like me to explain how the finite size of the NaI(Tl) detectors 
+'blurs' this theoretical curve into the **Effective Anisotropy Coefficients** ($A^{eff}$) used in the lab? [cite: 315-317]")
