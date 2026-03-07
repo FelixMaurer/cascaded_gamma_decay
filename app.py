@@ -393,8 +393,12 @@ def plot_3d_vectors(v1, v2, target_mag, title):
 def draw_transition_rule_cartoon():
     fig = go.Figure()
 
-    # --- Left state: J = 4 example ---
-    xL, y0 = -4.2, 0.0
+    # -----------------------------
+    # Left state: example J = 4
+    # -----------------------------
+    xL, y0 = -4.3, 0.0
+
+    # effective j = 1.5
     fig.add_trace(go.Scatter(
         x=[xL, xL], y=[y0, y0 + 1.6],
         mode="lines+markers",
@@ -402,6 +406,8 @@ def draw_transition_rule_cartoon():
         marker=dict(size=6, color="cyan"),
         showlegend=False
     ))
+
+    # effective j = 2.5
     fig.add_trace(go.Scatter(
         x=[xL, xL + 1.6], y=[y0 + 1.6, y0 + 2.8],
         mode="lines+markers",
@@ -409,16 +415,22 @@ def draw_transition_rule_cartoon():
         marker=dict(size=6, color="lime"),
         showlegend=False
     ))
+
+    # total J = 4
     fig.add_trace(go.Scatter(
-        x=[xL - 0.35, xL - 0.35], y=[y0, y0 + 3.9],
+        x=[xL - 0.45, xL - 0.45], y=[y0, y0 + 3.9],
         mode="lines+markers",
         line=dict(color="yellow", width=8),
         marker=dict(size=6, color="yellow"),
         showlegend=False
     ))
 
-    # --- Right state: J = 2 example ---
-    xR = 3.2
+    # -----------------------------
+    # Right state: example J = 2
+    # -----------------------------
+    xR = 3.4
+
+    # effective j = 1.5
     fig.add_trace(go.Scatter(
         x=[xR, xR], y=[y0, y0 + 1.6],
         mode="lines+markers",
@@ -426,6 +438,8 @@ def draw_transition_rule_cartoon():
         marker=dict(size=6, color="cyan"),
         showlegend=False
     ))
+
+    # effective j = 2.5
     fig.add_trace(go.Scatter(
         x=[xR, xR + 2.0], y=[y0 + 1.6, y0 + 1.8],
         mode="lines+markers",
@@ -433,94 +447,124 @@ def draw_transition_rule_cartoon():
         marker=dict(size=6, color="lime"),
         showlegend=False
     ))
+
+    # total J = 2
     fig.add_trace(go.Scatter(
-        x=[xR - 0.35, xR - 0.35], y=[y0, y0 + 2.0],
+        x=[xR - 0.45, xR - 0.45], y=[y0, y0 + 2.0],
         mode="lines+markers",
         line=dict(color="yellow", width=8),
         marker=dict(size=6, color="yellow"),
         showlegend=False
     ))
 
-    # --- gamma arrow in middle ---
+    # -----------------------------
+    # Gamma arrow in the middle
+    # -----------------------------
     fig.add_annotation(
-        x=1.0, y=2.35, ax=-0.9, ay=2.35,
+        x=1.0, y=2.35, ax=-1.0, ay=2.35,
         xref="x", yref="y", axref="x", ayref="y",
-        showarrow=True, arrowhead=3, arrowsize=1.4, arrowwidth=3,
+        showarrow=True,
+        arrowhead=3,
+        arrowsize=1.4,
+        arrowwidth=3,
         arrowcolor="orange"
     )
+
     fig.add_annotation(
-        x=0.05, y=2.85,
+        x=0.0, y=3.05,
         text="<b>γ₁ = 1173 keV</b>",
         showarrow=False,
-        font=dict(size=14, color="orange")
+        font=dict(size=14, color="orange"),
+        bgcolor="rgba(255,255,255,0.85)"
     )
+
     fig.add_annotation(
-        x=0.05, y=2.25,
+        x=0.0, y=2.55,
         text="dominant E2<br>carries away 2ħ",
         showarrow=False,
-        font=dict(size=12, color="orange")
+        font=dict(size=12, color="orange"),
+        bgcolor="rgba(255,255,255,0.85)"
     )
 
-    # --- labels kept away from vectors ---
+    # -----------------------------
+    # State labels above
+    # -----------------------------
     fig.add_annotation(
-        x=-4.9, y=4.45,
-        text="<b>Before</b><br>example J = 4 coupling",
-        showarrow=False, align="left", font=dict(size=13)
-    )
-    fig.add_annotation(
-        x=2.4, y=4.45,
-        text="<b>After</b><br>example J = 2 coupling",
-        showarrow=False, align="left", font=dict(size=13)
-    )
-
-    fig.add_annotation(
-        x=-5.0, y=1.0,
-        text="effective<br>j = 1.5",
-        showarrow=False, font=dict(size=12, color="cyan"), align="right"
-    )
-    fig.add_annotation(
-        x=-2.1, y=2.95,
-        text="effective<br>j = 2.5",
-        showarrow=False, font=dict(size=12, color="lime"), align="left"
-    )
-    fig.add_annotation(
-        x=-5.15, y=3.65,
-        text="total<br>J = 4",
-        showarrow=False, font=dict(size=12, color="yellow"), align="right"
+        x=-4.8, y=4.55,
+        text="<b>Before</b><br>example coupling to J = 4",
+        showarrow=False,
+        align="center",
+        font=dict(size=13),
+        bgcolor="rgba(255,255,255,0.9)",
+        bordercolor="rgba(0,0,0,0.15)",
+        borderwidth=1
     )
 
     fig.add_annotation(
-        x=2.45, y=1.0,
-        text="effective<br>j = 1.5",
-        showarrow=False, font=dict(size=12, color="cyan"), align="right"
+        x=4.2, y=4.55,
+        text="<b>After</b><br>example coupling to J = 2",
+        showarrow=False,
+        align="center",
+        font=dict(size=13),
+        bgcolor="rgba(255,255,255,0.9)",
+        bordercolor="rgba(0,0,0,0.15)",
+        borderwidth=1
     )
+
+    # -----------------------------
+    # Bottom legend instead of on-vector labels
+    # -----------------------------
     fig.add_annotation(
-        x=5.45, y=1.95,
-        text="effective<br>j = 2.5",
-        showarrow=False, font=dict(size=12, color="lime"), align="left"
-    )
-    fig.add_annotation(
-        x=2.1, y=1.85,
-        text="total<br>J = 2",
-        showarrow=False, font=dict(size=12, color="yellow"), align="right"
+        x=-4.7, y=-0.45,
+        text="<span style='color:cyan'><b>cyan</b></span>: effective j = 1.5",
+        showarrow=False,
+        font=dict(size=12),
+        align="left",
+        bgcolor="rgba(255,255,255,0.9)"
     )
 
     fig.add_annotation(
-        x=0.0, y=0.35,
+        x=0.0, y=-0.45,
+        text="<span style='color:lime'><b>lime</b></span>: effective j = 2.5",
+        showarrow=False,
+        font=dict(size=12),
+        align="center",
+        bgcolor="rgba(255,255,255,0.9)"
+    )
+
+    fig.add_annotation(
+        x=4.7, y=-0.45,
+        text="<span style='color:yellow'><b>yellow</b></span>: total J",
+        showarrow=False,
+        font=dict(size=12),
+        align="right",
+        bgcolor="rgba(255,255,255,0.9)"
+    )
+
+    # -----------------------------
+    # Central explanatory note
+    # -----------------------------
+    fig.add_annotation(
+        x=0.0, y=0.45,
         text="<b>Selection rule cartoon</b><br>same valence space, different total coupling",
-        showarrow=False, font=dict(size=12)
+        showarrow=False,
+        font=dict(size=12),
+        bgcolor="rgba(255,255,255,0.9)",
+        bordercolor="rgba(0,0,0,0.15)",
+        borderwidth=1
     )
 
     fig.update_layout(
         title="First emission: example recoupling from J = 4 to J = 2",
-        xaxis=dict(visible=False, range=[-6.0, 6.0]),
-        yaxis=dict(visible=False, range=[-0.8, 5.0], scaleanchor="x", scaleratio=1),
-        height=370,
+        xaxis=dict(visible=False, range=[-6.4, 6.4]),
+        yaxis=dict(visible=False, range=[-0.9, 5.1], scaleanchor="x", scaleratio=1),
+        height=390,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         margin=dict(l=0, r=0, t=40, b=0),
         showlegend=False
     )
+
     return fig
 
 # -------------------------------------------------------------------
