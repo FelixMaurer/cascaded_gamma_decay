@@ -27,14 +27,18 @@ def draw_2d_shell(title_text, num_in=3, num_out=1):
     fig_shell.add_annotation(x=0, y=5.2, text="1f5/2 Orbital", showarrow=False, font=dict(color="lime", size=14))
     
     # Determine neutron positions dynamically based on state
-    if num_in == 3:
-        theta_in = [np.pi/4, 3*np.pi/4, 5*np.pi/4]
-    elif num_in == 4:
+    if num_in == 4:
         theta_in = [np.pi/4, 3*np.pi/4, 5*np.pi/4, 7*np.pi/4]
+    elif num_in == 3:
+        theta_in = [np.pi/4, 3*np.pi/4, 5*np.pi/4]
+    elif num_in == 2:
+        theta_in = [np.pi/4, 3*np.pi/4]
     else:
         theta_in = []
         
-    if num_out == 1:
+    if num_out == 2:
+        theta_out = [5*np.pi/4, 7*np.pi/4]
+    elif num_out == 1:
         theta_out = [7*np.pi/4]
     else:
         theta_out = []
@@ -44,7 +48,7 @@ def draw_2d_shell(title_text, num_in=3, num_out=1):
                                        mode='markers', marker=dict(size=15, color='cyan'), name=f"{num_in} Neutrons (2p3/2)"))
     if len(theta_out) > 0:
         fig_shell.add_trace(go.Scatter(x=5.0*np.cos(theta_out), y=5.0*np.sin(theta_out), 
-                                       mode='markers', marker=dict(size=15, color='lime'), name=f"{num_out} Neutron (1f5/2)"))
+                                       mode='markers', marker=dict(size=15, color='lime'), name=f"{num_out} Neutrons (1f5/2)"))
     
     fig_shell.update_layout(title=title_text, 
                             xaxis=dict(visible=False, range=[-6, 6]), 
@@ -104,8 +108,8 @@ def plot_3d_vectors(v1, v2, target_mag, title):
         fig.add_trace(go.Scatter3d(x=[0], y=[0], z=[0],
                                    mode='markers', name=f'Total Spin I={target_mag}', marker=dict(size=12, color='yellow')))
         # Add invisible traces to keep legend consistent
-        fig.add_trace(go.Scatter3d(x=[0,0], y=[0,0], z=[0,0], mode='lines', name='2p3/2 Net', line=dict(width=0, color='cyan')))
-        fig.add_trace(go.Scatter3d(x=[0,0], y=[0,0], z=[0,0], mode='lines', name='1f5/2', line=dict(width=0, color='lime')))
+        fig.add_trace(go.Scatter3d(x=[0,0], y=[0,0], z=[0,0], mode='lines', name='Vector A', line=dict(width=0, color='cyan')))
+        fig.add_trace(go.Scatter3d(x=[0,0], y=[0,0], z=[0,0], mode='lines', name='Vector B', line=dict(width=0, color='lime')))
     else:
         cos_theta = (target_mag**2 - v1**2 - v2**2) / (2 * v1 * v2)
         cos_theta = np.clip(cos_theta, -1.0, 1.0) 
@@ -125,9 +129,9 @@ def plot_3d_vectors(v1, v2, target_mag, title):
             w_dir = end_z / norm
 
         fig.add_trace(go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, v1],
-                                   mode='lines+markers', name=f'Orbital A (j={v1})', line=dict(width=8, color='cyan')))
+                                   mode='lines+markers', name=f'Vector A (j={v1})', line=dict(width=8, color='cyan')))
         fig.add_trace(go.Scatter3d(x=[0, end_x], y=[0, end_y], z=[v1, end_z],
-                                   mode='lines+markers', name=f'Orbital B (j={v2})', line=dict(width=8, color='lime')))
+                                   mode='lines+markers', name=f'Vector B (j={v2})', line=dict(width=8, color='lime')))
         
         fig.add_trace(go.Scatter3d(x=[offset_x, offset_x], y=[0, end_y], z=[0, end_z],
                                    mode='lines', name=f'Total Spin I={target_mag}', line=dict(color='yellow', width=8)))
@@ -170,14 +174,20 @@ with col1_c:
 # --- SECTION 1.4: ALTERNATIVE CONFIGURATIONS ---
 st.write("---")
 st.subheader("1.4. Alternative Microscopic Configurations")
-col1_d, col1_e = st.columns([1, 2])
+col1_d, col1_e, col1_f = st.columns(3)
+
 with col1_d:
-    st.write("The configuration shown above (one $j=1.5$ coupling with one $j=2.5$) is not the only way the nucleus can reach an initial state of $I=4$.")
+    st.write("**Alternative Schematic:** Two neutrons promoted to 1f5/2.")
+    st.plotly_chart(draw_2d_shell("Alternative Valence (I=4)", num_in=2, num_out=2), use_container_width=True, key="shell_1_alt")
+
+with col1_e:
+    st.write("The configuration above (one $j=1.5$ coupling with one $j=2.5$) is not the only way the nucleus can reach an initial state of $I=4$.")
     st.write("**Why are there many alternatives?**")
     st.write("1. **Configuration Mixing:** In quantum mechanics, the nucleus does not exist in just one static arrangement. The true state is a *superposition* of multiple valid shell arrangements. The neutrons are constantly shifting between the $fp$-shell orbitals.")
-    st.write("2. **Multiple Valid Couplings:** As long as the vector addition rules are obeyed, different orbital momenta can result in the same total spin. For example, if two neutrons occupy the $1f_{5/2}$ shell ($j=2.5$ each), they can also couple together to form $I=4$.")
-    st.write("Because their maximum combined spin would be 5, they must sit at an angle to each other to exactly sum to 4, as shown in the diagram.")
-with col1_e:
+    st.write("2. **Multiple Valid Couplings:** If two neutrons occupy the $1f_{5/2}$ shell ($j=2.5$ each), they can also couple together to form $I=4$. Because their maximum combined spin is 5, they sit at an angle to exactly sum to 4.")
+
+with col1_f:
+    st.write("**Alternative Vector Coupling**")
     st.plotly_chart(plot_3d_vectors(2.5, 2.5, 4.0, "Alternative Coupling: 2.5 + 2.5 = 4"), use_container_width=True, key="alt_vector_1")
 
 st.divider()
