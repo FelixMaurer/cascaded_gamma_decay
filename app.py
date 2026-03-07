@@ -338,106 +338,135 @@ def plot_3d_vectors(v1, v2, target_mag, title):
 def draw_transition_rule_cartoon():
     fig = go.Figure()
 
-    # Left: before (J = 4)
-    xL, yL = -3.8, 0.0
+    # --- Left state: J = 4 example ---
+    xL, y0 = -4.2, 0.0
     fig.add_trace(go.Scatter(
-        x=[xL, xL], y=[yL, yL + 1.8],
-        mode="lines+markers",
-        line=dict(color="cyan", width=7),
-        marker=dict(size=6, color="cyan"),
-        name="Effective j = 1.5"
-    ))
-    fig.add_trace(go.Scatter(
-        x=[xL, xL + 1.7], y=[yL + 1.8, yL + 3.0],
-        mode="lines+markers",
-        line=dict(color="lime", width=7),
-        marker=dict(size=6, color="lime"),
-        name="Effective j = 2.5"
-    ))
-    fig.add_trace(go.Scatter(
-        x=[xL - 0.25, xL - 0.25], y=[yL, yL + 4.0],
-        mode="lines+markers",
-        line=dict(color="yellow", width=8),
-        marker=dict(size=6, color="yellow"),
-        name="Total J"
-    ))
-
-    # Right: after (J = 2)
-    xR, yR = 3.0, 0.0
-    fig.add_trace(go.Scatter(
-        x=[xR, xR], y=[yR, yR + 1.8],
+        x=[xL, xL], y=[y0, y0 + 1.6],
         mode="lines+markers",
         line=dict(color="cyan", width=7),
         marker=dict(size=6, color="cyan"),
         showlegend=False
     ))
     fig.add_trace(go.Scatter(
-        x=[xR, xR + 2.0], y=[yR + 1.8, yR + 1.9],
+        x=[xL, xL + 1.6], y=[y0 + 1.6, y0 + 2.8],
         mode="lines+markers",
         line=dict(color="lime", width=7),
         marker=dict(size=6, color="lime"),
         showlegend=False
     ))
     fig.add_trace(go.Scatter(
-        x=[xR - 0.25, xR - 0.25], y=[yR, yR + 2.0],
+        x=[xL - 0.35, xL - 0.35], y=[y0, y0 + 3.9],
         mode="lines+markers",
         line=dict(color="yellow", width=8),
         marker=dict(size=6, color="yellow"),
         showlegend=False
     ))
 
-    # Gamma arrow
+    # --- Right state: J = 2 example ---
+    xR = 3.2
+    fig.add_trace(go.Scatter(
+        x=[xR, xR], y=[y0, y0 + 1.6],
+        mode="lines+markers",
+        line=dict(color="cyan", width=7),
+        marker=dict(size=6, color="cyan"),
+        showlegend=False
+    ))
+    fig.add_trace(go.Scatter(
+        x=[xR, xR + 2.0], y=[y0 + 1.6, y0 + 1.8],
+        mode="lines+markers",
+        line=dict(color="lime", width=7),
+        marker=dict(size=6, color="lime"),
+        showlegend=False
+    ))
+    fig.add_trace(go.Scatter(
+        x=[xR - 0.35, xR - 0.35], y=[y0, y0 + 2.0],
+        mode="lines+markers",
+        line=dict(color="yellow", width=8),
+        marker=dict(size=6, color="yellow"),
+        showlegend=False
+    ))
+
+    # --- gamma arrow in middle ---
     fig.add_annotation(
-        x=0.7, y=2.45, ax=-0.7, ay=2.45,
+        x=1.0, y=2.35, ax=-0.9, ay=2.35,
         xref="x", yref="y", axref="x", ayref="y",
-        showarrow=True, arrowhead=3, arrowsize=1.3, arrowwidth=3,
+        showarrow=True, arrowhead=3, arrowsize=1.4, arrowwidth=3,
         arrowcolor="orange"
     )
     fig.add_annotation(
-        x=0, y=2.9,
-        text="<b>γ₁ = 1173 keV</b><br>dominant E2<br>carries away 2ħ",
+        x=0.05, y=2.85,
+        text="<b>γ₁ = 1173 keV</b>",
         showarrow=False,
-        font=dict(size=13, color="orange")
+        font=dict(size=14, color="orange")
+    )
+    fig.add_annotation(
+        x=0.05, y=2.25,
+        text="dominant E2<br>carries away 2ħ",
+        showarrow=False,
+        font=dict(size=12, color="orange")
+    )
+
+    # --- labels kept away from vectors ---
+    fig.add_annotation(
+        x=-4.9, y=4.45,
+        text="<b>Before</b><br>example J = 4 coupling",
+        showarrow=False, align="left", font=dict(size=13)
+    )
+    fig.add_annotation(
+        x=2.4, y=4.45,
+        text="<b>After</b><br>example J = 2 coupling",
+        showarrow=False, align="left", font=dict(size=13)
     )
 
     fig.add_annotation(
-        x=xL - 0.2, y=4.45,
-        text="<b>Before:</b> example coupling to J = 4",
-        showarrow=False, font=dict(size=13)
+        x=-5.0, y=1.0,
+        text="effective<br>j = 1.5",
+        showarrow=False, font=dict(size=12, color="cyan"), align="right"
     )
     fig.add_annotation(
-        x=xR - 0.1, y=4.45,
-        text="<b>After:</b> example coupling to J = 2",
-        showarrow=False, font=dict(size=13)
+        x=-2.1, y=2.95,
+        text="effective<br>j = 2.5",
+        showarrow=False, font=dict(size=12, color="lime"), align="left"
     )
     fig.add_annotation(
-        x=-3.2, y=-0.55,
-        text="same valence space<br>different coupling",
+        x=-5.15, y=3.65,
+        text="total<br>J = 4",
+        showarrow=False, font=dict(size=12, color="yellow"), align="right"
+    )
+
+    fig.add_annotation(
+        x=2.45, y=1.0,
+        text="effective<br>j = 1.5",
+        showarrow=False, font=dict(size=12, color="cyan"), align="right"
+    )
+    fig.add_annotation(
+        x=5.45, y=1.95,
+        text="effective<br>j = 2.5",
+        showarrow=False, font=dict(size=12, color="lime"), align="left"
+    )
+    fig.add_annotation(
+        x=2.1, y=1.85,
+        text="total<br>J = 2",
+        showarrow=False, font=dict(size=12, color="yellow"), align="right"
+    )
+
+    fig.add_annotation(
+        x=0.0, y=0.35,
+        text="<b>Selection rule cartoon</b><br>same valence space, different total coupling",
         showarrow=False, font=dict(size=12)
-    )
-    fig.add_annotation(
-        x=3.5, y=-0.55,
-        text="same valence space<br>different coupling",
-        showarrow=False, font=dict(size=12)
-    )
-    fig.add_annotation(
-        x=0, y=0.45,
-        text="<b>Selection rule cartoon</b><br>ΔJ = 2, parity unchanged",
-        showarrow=False, font=dict(size=13)
     )
 
     fig.update_layout(
-        title="Transition cartoon: recoupling from J = 4 to J = 2",
-        xaxis=dict(visible=False, range=[-5.5, 5.5]),
-        yaxis=dict(visible=False, range=[-1.0, 5.0], scaleanchor="x", scaleratio=1),
-        height=360,
+        title="First emission: example recoupling from J = 4 to J = 2",
+        xaxis=dict(visible=False, range=[-6.0, 6.0]),
+        yaxis=dict(visible=False, range=[-0.8, 5.0], scaleanchor="x", scaleratio=1),
+        height=370,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         margin=dict(l=0, r=0, t=40, b=0),
-        legend=dict(yanchor="top", y=0.98, xanchor="left", x=0.02)
+        showlegend=False
     )
     return fig
-
 
 # -------------------------------------------------------------------
 # Helper: gamma1 defines axis cartoon
@@ -577,7 +606,94 @@ def plot_angular_probability():
         showlegend=False
     )
     return fig
+def draw_parity_cartoon():
+    fig = go.Figure()
 
+    # level lines
+    fig.add_trace(go.Scatter(
+        x=[-1.8, 1.8], y=[3.2, 3.2],
+        mode="lines",
+        line=dict(width=4, color="royalblue"),
+        showlegend=False
+    ))
+    fig.add_trace(go.Scatter(
+        x=[-1.8, 1.8], y=[1.2, 1.2],
+        mode="lines",
+        line=dict(width=4, color="seagreen"),
+        showlegend=False
+    ))
+
+    fig.add_annotation(x=2.2, y=3.2, text="<b>4⁺</b>", showarrow=False, font=dict(size=16, color="royalblue"))
+    fig.add_annotation(x=2.2, y=1.2, text="<b>2⁺</b>", showarrow=False, font=dict(size=16, color="seagreen"))
+
+    # inversion cartoon
+    fig.add_annotation(
+        x=-2.8, y=2.2,
+        text="<b>Parity</b><br>behavior under spatial inversion<br><span style='font-size:16px'>r → −r</span>",
+        showarrow=False, align="center", font=dict(size=13)
+    )
+
+    # gamma arrow
+    fig.add_annotation(
+        x=0.0, y=1.35, ax=0.0, ay=3.05,
+        xref="x", yref="y", axref="x", ayref="y",
+        showarrow=True, arrowhead=3, arrowsize=1.4, arrowwidth=3,
+        arrowcolor="orange"
+    )
+
+    fig.add_annotation(
+        x=0.7, y=2.2,
+        text="<b>E2</b><br>ΔJ = 2<br>Δπ = +1",
+        showarrow=False, font=dict(size=14, color="orange")
+    )
+
+    fig.add_annotation(
+        x=0.0, y=0.2,
+        text="Both levels have positive parity, so the first emission must preserve parity.",
+        showarrow=False, font=dict(size=12)
+    )
+
+    fig.update_layout(
+        title="Parity and multipolarity for the first emission",
+        xaxis=dict(visible=False, range=[-4.2, 4.2]),
+        yaxis=dict(visible=False, range=[-0.4, 4.1]),
+        height=340,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=0, t=40, b=0),
+        showlegend=False
+    )
+    return fig
+
+
+def plot_first_gamma_probability():
+    theta_deg = np.linspace(0, 360, 721)
+    r = np.ones_like(theta_deg)
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatterpolar(
+        r=r,
+        theta=theta_deg,
+        mode="lines",
+        line=dict(color="gold", width=4),
+        fill="toself",
+        fillcolor="rgba(255,215,0,0.25)",
+        showlegend=False
+    ))
+
+    fig.update_layout(
+        title="First emission alone: isotropic angular probability",
+        polar=dict(
+            radialaxis=dict(visible=False, range=[0, 1.05]),
+            angularaxis=dict(direction="counterclockwise", rotation=0)
+        ),
+        height=340,
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=10, r=10, t=50, b=10),
+        showlegend=False
+    )
+    return fig
 
 st.divider()
 
@@ -793,33 +909,47 @@ st.divider()
 # =====================================================================
 st.header("4. The First Transition (J = 4 → J = 2)")
 st.write(
-    "This section focuses on the first gamma emission itself. "
-    "The goal is to connect the intuitive valence-coupling picture to the dominant selection rule "
-    "and to the measured angular correlation."
+    "This section focuses only on the first gamma emission. "
+    "The aim is to connect the intuitive recoupling picture to parity, selection rules, "
+    "and the angular probability of γ₁ itself."
 )
 
 st.info(
     """
     **Interpretation note**
 
-    The drawings below are still cartoons. They are meant to explain:
-    1. how an excited state can change from total **J = 4** to **J = 2**,
-    2. why this is naturally associated with a dominant **E2** transition,
-    3. and why detecting the first gamma defines the axis used in the angular-correlation measurement.
+    The drawings below are still cartoons.
+    They explain:
+    - what parity means in this transition,
+    - where the electromagnetic selection rules come from,
+    - why the first emission is dominantly E2,
+    - and what the angular probability looks like for γ₁ alone.
 
-    They are not literal snapshots of nucleons rotating in space.
+    They are not literal pictures of neutron motion in space.
     """
 )
 
 col4_a, col4_b, col4_c = st.columns(3)
 
 with col4_a:
-    st.subheader("4.1. Recoupling and Auswahlregeln")
+    st.subheader("4.1. Parity")
     st.write(
-        "In the dominant picture, the first gamma connects a state whose valence-space coupling gives total "
-        "**J = 4** to one whose coupling gives **J = 2**. "
-        "For the observed cascade, the natural dominant multipolarity is **E2**: the photon carries away "
-        "2 units of angular momentum, while the parity remains unchanged."
+        "Parity describes how a nuclear wavefunction behaves under spatial inversion **r → −r**. "
+        "A **+** state keeps its sign, while a **−** state changes sign. "
+        "Because both the initial and final states here are positive (**4⁺ → 2⁺**), the first transition must preserve parity."
+    )
+    st.plotly_chart(
+        draw_parity_cartoon(),
+        use_container_width=True,
+        key="parity_cartoon"
+    )
+
+with col4_b:
+    st.subheader("4.2. Where the Auswahlregeln come from")
+    st.write(
+        "The selection rules come from conservation of **angular momentum** and **parity** in electromagnetic decay. "
+        "For the first emission, the nucleus changes from **J = 4** to **J = 2**, so the photon must carry angular momentum away. "
+        "Since there is no parity change, the lowest allowed multipole is **E2**, which is therefore the dominant first-emission character."
     )
     st.plotly_chart(
         draw_transition_rule_cartoon(),
@@ -827,51 +957,38 @@ with col4_a:
         key="transition_rule_cartoon"
     )
 
-with col4_b:
-    st.subheader("4.2. How γ₁ defines the measurement axis")
-    st.write(
-        "For an initially unpolarized source, there is no preferred axis beforehand. "
-        "Once the first gamma **γ₁** is detected, its direction becomes the reference axis. "
-        "The second gamma **γ₂** is then studied relative to that axis at an angle **θ**."
-    )
-    st.plotly_chart(
-        draw_axis_selection_cartoon(),
-        use_container_width=True,
-        key="axis_selection_cartoon"
-    )
-
 with col4_c:
-    st.subheader("4.3. Angular emission probability")
+    st.subheader("4.3. Angular probability of γ₁ alone")
     st.write(
-        "For the standard 4⁺ → 2⁺ → 0⁺ cascade of Co-60 / Ni-60, the coincidence probability depends on the angle "
-        "between the two detected gamma rays. "
-        "In this simplified view, the correlation is slightly stronger for **0°** and **180°** than for **90°**."
+        "For an ordinary **unpolarized** Co-60 source, the first gamma by itself has **no preferred direction**. "
+        "So the angular probability for γ₁ alone is **isotropic**: the emission is equally likely in all directions."
     )
     st.plotly_chart(
-        plot_angular_probability(),
+        plot_first_gamma_probability(),
         use_container_width=True,
-        key="angular_probability_cartoon"
+        key="first_gamma_probability"
     )
 
 st.write("---")
-st.subheader("4.4. From configuration change to angular correlation")
+st.subheader("4.4. How the first-emission probability is calculated")
 st.write(
-    "In the intuitive shell-model cartoon used throughout this app, the first transition is not best thought of as "
-    "one neutron simply 'falling back' in a classical orbit. Instead, the nucleus changes from one **many-body coupling** "
-    "with total **J = 4** to another with total **J = 2**. The emitted photon carries away the missing angular momentum."
+    "The selection rules tell us which **multipolarities** are allowed. They do **not** automatically create an anisotropic pattern for the first gamma. "
+    "To get a directional preference, the emitting nucleus must already be **aligned** or **oriented**, meaning its magnetic substates are not equally populated."
 )
 st.write(
-    "Because the first observed gamma fixes a reference direction, the intermediate state is no longer treated as completely "
-    "directionless in the coincidence measurement. That is why the second gamma is not emitted with equal probability into all angles "
-    "relative to the first one."
+    "For the unpolarized source used in the standard Co-60 experiment, the first-emission probability is simply:"
 )
-st.write("For this cascade, the standard angular-correlation form is:")
-st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
+st.latex(r"W_1(\theta)=\frac{1}{4\pi}")
 st.write(
-    "This means the coincidence rate is lowest at **90°** and highest at **0°** and **180°**, with a modest anisotropy."
+    "If you normalize the distribution for plotting, this becomes just a constant circle:"
 )
-
-st.caption(
-    "Summary: this app is designed to explain the cascade intuitively through occupancy cartoons and effective angular-momentum coupling. "
-    "It should be read as a visual guide to how total J can arise and change, not as a literal microscopic snapshot of the nucleus."
+st.latex(r"W_{1,\mathrm{norm}}(\theta)=1")
+st.write(
+    "Only for an **aligned** initial state would a single-gamma distribution become anisotropic. "
+    "In that case one writes it as a Legendre-polynomial expansion,"
+)
+st.latex(r"W(\theta)=A_0\left[1+a_2P_2(\cos\theta)+a_4P_4(\cos\theta)+\cdots\right]")
+st.write(
+    "where the coefficients depend on the alignment of the emitting state and on the multipolarity of the radiation. "
+    "That is the right framework for single-gamma angular distributions — but it is **not** the situation for γ₁ from an ordinary unpolarized Co-60 source."
 )
