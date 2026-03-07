@@ -31,28 +31,29 @@ with c2:
     fig_shell.add_annotation(x=0, y=0, text="<b>Stable Core<br>(28p, 28n)<br>Spin = 0</b>", 
                              showarrow=False, font=dict(size=14, color="black"))
     
-    # Draw Valence Shells
+    # Draw Valence Shells (Brighter colors)
     fig_shell.add_shape(type="circle", x0=-3.5, y0=-3.5, x1=3.5, y1=3.5, 
-                        line=dict(color="blue", dash="dash"))
-    fig_shell.add_annotation(x=0, y=3.7, text="2p3/2 Orbital", showarrow=False, font=dict(color="blue", size=14))
+                        line=dict(color="cyan", dash="dash"))
+    fig_shell.add_annotation(x=0, y=3.7, text="2p3/2 Orbital", showarrow=False, font=dict(color="cyan", size=14))
     
     fig_shell.add_shape(type="circle", x0=-5, y0=-5, x1=5, y1=5, 
-                        line=dict(color="green", dash="dash"))
-    fig_shell.add_annotation(x=0, y=5.2, text="1f5/2 Orbital", showarrow=False, font=dict(color="green", size=14))
+                        line=dict(color="lime", dash="dash"))
+    fig_shell.add_annotation(x=0, y=5.2, text="1f5/2 Orbital", showarrow=False, font=dict(color="lime", size=14))
     
     # Add 4 Valence Neutrons
     theta_in = [np.pi/4, 3*np.pi/4, 5*np.pi/4] 
     theta_out = [7*np.pi/4]                    
     
     fig_shell.add_trace(go.Scatter(x=3.5*np.cos(theta_in), y=3.5*np.sin(theta_in), 
-                                   mode='markers', marker=dict(size=15, color='blue'), name="3 Neutrons (2p3/2)"))
+                                   mode='markers', marker=dict(size=15, color='cyan'), name="3 Neutrons (2p3/2)"))
     fig_shell.add_trace(go.Scatter(x=5.0*np.cos(theta_out), y=5.0*np.sin(theta_out), 
-                                   mode='markers', marker=dict(size=15, color='green'), name="1 Neutron (1f5/2)"))
+                                   mode='markers', marker=dict(size=15, color='lime'), name="1 Neutron (1f5/2)"))
     
     fig_shell.update_layout(title="Schematic of Ni-60 Valence Neutrons", 
                             xaxis=dict(visible=False, range=[-6, 6]), 
                             yaxis=dict(visible=False, range=[-6, 6], scaleanchor="x", scaleratio=1),
-                            height=500, width=500, showlegend=True)
+                            height=500, width=500, showlegend=True,
+                            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
     st.plotly_chart(fig_shell, use_container_width=True)
 
 st.divider()
@@ -82,24 +83,24 @@ with col_int1:
 with col_int2:
     fig_internal = go.Figure()
     
-    # Neutron 1 (Unpaired, pointing Z)
+    # Neutron 1 (Unpaired, pointing Z) - Bright Cyan
     fig_internal.add_trace(go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, 1.5],
-                               mode='lines+markers', name='Neutron 1 (j=1.5)', line=dict(width=6, color='lightblue')))
-    # Neutron 2 (Paired, pointing X)
+                               mode='lines+markers', name='Neutron 1 (j=1.5)', line=dict(width=6, color='cyan')))
+    # Neutron 2 (Paired, pointing X) - Bright Magenta
     fig_internal.add_trace(go.Scatter3d(x=[0, 1.5], y=[0, 0], z=[0, 0],
-                               mode='lines+markers', name='Neutron 2 (j=1.5)', line=dict(width=6, color='darkblue')))
-    # Neutron 3 (Paired, pointing -X, canceling Neutron 2)
+                               mode='lines+markers', name='Neutron 2 (j=1.5)', line=dict(width=6, color='magenta')))
+    # Neutron 3 (Paired, pointing -X, canceling Neutron 2) - Bright Magenta
     fig_internal.add_trace(go.Scatter3d(x=[0, -1.5], y=[0, 0], z=[0, 0],
-                               mode='lines+markers', name='Neutron 3 (j=1.5)', line=dict(width=6, color='darkblue')))
+                               mode='lines+markers', name='Neutron 3 (j=1.5)', line=dict(width=6, color='magenta')))
     
-    # Resultant
+    # Resultant - Yellow
     fig_internal.add_trace(go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, 1.5],
-                               mode='lines', name='Total Orbital j = 1.5', line=dict(dash='dash', color='red', width=8)))
+                               mode='lines', name='Total Orbital j = 1.5', line=dict(dash='dash', color='yellow', width=8)))
     
     fig_internal.update_layout(title="Internal Vector Cancellation in 2p3/2", 
                                scene=dict(aspectmode='cube', xaxis_title='X', yaxis_title='Y', zaxis_title='Z',
                                xaxis=dict(range=[-2, 2]), yaxis=dict(range=[-2, 2]), zaxis=dict(range=[-2, 2])), 
-                               height=400)
+                               height=400, paper_bgcolor="rgba(0,0,0,0)")
     st.plotly_chart(fig_internal, use_container_width=True)
 
 st.divider()
@@ -115,15 +116,15 @@ def plot_3d_vectors(v1, v2, target_mag, title):
     
     fig = go.Figure()
     fig.add_trace(go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, v1],
-                               mode='lines+markers', name=f'Orbital 1 (j={v1})', line=dict(width=8, color='blue')))
+                               mode='lines+markers', name=f'Orbital 1 (j={v1})', line=dict(width=8, color='cyan')))
     fig.add_trace(go.Scatter3d(x=[0, v2*sin_theta], y=[0, 0], z=[v1, v1 + v2*cos_theta],
-                               mode='lines+markers', name=f'Orbital 2 (j={v2})', line=dict(width=8, color='green')))
+                               mode='lines+markers', name=f'Orbital 2 (j={v2})', line=dict(width=8, color='lime')))
     fig.add_trace(go.Scatter3d(x=[0, v2*sin_theta], y=[0, 0], z=[0, v1 + v2*cos_theta],
-                               mode='lines', name=f'Total Spin = {target_mag}', line=dict(dash='dash', color='red', width=6)))
+                               mode='lines', name=f'Total Spin = {target_mag}', line=dict(dash='dash', color='yellow', width=6)))
     
     fig.update_layout(title=title, scene=dict(aspectmode='cube', xaxis_title='X', yaxis_title='Y', zaxis_title='Z',
                                               xaxis=dict(range=[-4, 4]), yaxis=dict(range=[-4, 4]), zaxis=dict(range=[0, 5])), 
-                                              height=400)
+                                              height=400, paper_bgcolor="rgba(0,0,0,0)")
     return fig
 
 col_alt1, col_alt2 = st.columns(2)
