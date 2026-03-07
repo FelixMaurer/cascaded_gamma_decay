@@ -104,8 +104,8 @@ def plot_3d_vectors(v1, v2, target_mag, title):
         fig.add_trace(go.Scatter3d(x=[0], y=[0], z=[0],
                                    mode='markers', name=f'Total Spin I={target_mag}', marker=dict(size=12, color='yellow')))
         # Add invisible traces to keep legend consistent
-        fig.add_trace(go.Scatter3d(x=[0,0], y=[0,0], z=[0,0], mode='lines', name='2p3/2 Net (j=0)', line=dict(width=0, color='cyan')))
-        fig.add_trace(go.Scatter3d(x=[0,0], y=[0,0], z=[0,0], mode='lines', name='1f5/2 (j=0)', line=dict(width=0, color='lime')))
+        fig.add_trace(go.Scatter3d(x=[0,0], y=[0,0], z=[0,0], mode='lines', name='2p3/2 Net', line=dict(width=0, color='cyan')))
+        fig.add_trace(go.Scatter3d(x=[0,0], y=[0,0], z=[0,0], mode='lines', name='1f5/2', line=dict(width=0, color='lime')))
     else:
         cos_theta = (target_mag**2 - v1**2 - v2**2) / (2 * v1 * v2)
         cos_theta = np.clip(cos_theta, -1.0, 1.0) 
@@ -125,9 +125,9 @@ def plot_3d_vectors(v1, v2, target_mag, title):
             w_dir = end_z / norm
 
         fig.add_trace(go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, v1],
-                                   mode='lines+markers', name=f'2p3/2 Net (j={v1})', line=dict(width=8, color='cyan')))
+                                   mode='lines+markers', name=f'Orbital A (j={v1})', line=dict(width=8, color='cyan')))
         fig.add_trace(go.Scatter3d(x=[0, end_x], y=[0, end_y], z=[v1, end_z],
-                                   mode='lines+markers', name=f'1f5/2 (j={v2})', line=dict(width=8, color='lime')))
+                                   mode='lines+markers', name=f'Orbital B (j={v2})', line=dict(width=8, color='lime')))
         
         fig.add_trace(go.Scatter3d(x=[offset_x, offset_x], y=[0, end_y], z=[0, end_z],
                                    mode='lines', name=f'Total Spin I={target_mag}', line=dict(color='yellow', width=8)))
@@ -167,6 +167,18 @@ with col1_c:
     st.write("The j=1.5 and j=2.5 orbitals align parallel to reach the maximum allowed spin of 4.")
     st.plotly_chart(plot_3d_vectors(1.5, 2.5, 4.0, "1.5 + 2.5 Re-coupled to 4"), use_container_width=True, key="vector_1")
 
+# --- SECTION 1.4: ALTERNATIVE CONFIGURATIONS ---
+st.write("---")
+st.subheader("1.4. Alternative Microscopic Configurations")
+col1_d, col1_e = st.columns([1, 2])
+with col1_d:
+    st.write("The configuration shown above (one $j=1.5$ coupling with one $j=2.5$) is not the only way the nucleus can reach an initial state of $I=4$.")
+    st.write("**Why are there many alternatives?**")
+    st.write("1. **Configuration Mixing:** In quantum mechanics, the nucleus does not exist in just one static arrangement. The true state is a *superposition* of multiple valid shell arrangements. The neutrons are constantly shifting between the $fp$-shell orbitals.")
+    st.write("2. **Multiple Valid Couplings:** As long as the vector addition rules are obeyed, different orbital momenta can result in the same total spin. For example, if two neutrons occupy the $1f_{5/2}$ shell ($j=2.5$ each), they can also couple together to form $I=4$.")
+    st.write("Because their maximum combined spin would be 5, they must sit at an angle to each other to exactly sum to 4, as shown in the diagram.")
+with col1_e:
+    st.plotly_chart(plot_3d_vectors(2.5, 2.5, 4.0, "Alternative Coupling: 2.5 + 2.5 = 4"), use_container_width=True, key="alt_vector_1")
 
 st.divider()
 
@@ -199,8 +211,6 @@ st.divider()
 # ==========================================
 st.header("3. The Final Ground State (I = 0)")
 st.write("The nucleus emits its second gamma quantum (1333 keV), shedding its final 2 units of angular momentum. The cascade is complete!")
-
-
 
 col3_a, col3_b, col3_c = st.columns(3)
 with col3_a:
