@@ -126,17 +126,17 @@ st.write("Following the beta decay of Co-60, the Ni-60 nucleus is formed in an e
 col1_a, col1_b, col1_c = st.columns(3)
 with col1_a:
     st.subheader("1.1. Schematic")
-    st.plotly_chart(draw_2d_shell("Valence Arrangement"), use_container_width=True)
+    st.plotly_chart(draw_2d_shell("Valence Arrangement"), use_container_width=True, key="shell_1")
     
 with col1_b:
     st.subheader("1.2. Internal 2p3/2 Coupling")
     st.write("Two neutrons cancel to 0 (magenta), leaving the unpaired neutron to define the orbital's j=1.5 momentum.")
-    st.plotly_chart(plot_internal_coupling("3 Neutrons -> Net j=1.5"), use_container_width=True)
+    st.plotly_chart(plot_internal_coupling("3 Neutrons -> Net j=1.5"), use_container_width=True, key="internal_1")
 
 with col1_c:
     st.subheader("1.3. Orbital Coupling to I=4")
     st.write("The j=1.5 and j=2.5 orbitals align parallel to reach the maximum allowed spin of 4.")
-    st.plotly_chart(plot_3d_vectors(1.5, 2.5, 4.0, "1.5 + 2.5 Re-coupled to 4"), use_container_width=True)
+    st.plotly_chart(plot_3d_vectors(1.5, 2.5, 4.0, "1.5 + 2.5 Re-coupled to 4"), use_container_width=True, key="vector_1")
 
 
 st.divider()
@@ -150,17 +150,17 @@ st.write("After the first quadrupole gamma emission, the nucleus sheds 2 units o
 col2_a, col2_b, col2_c = st.columns(3)
 with col2_a:
     st.subheader("2.1. Schematic")
-    st.plotly_chart(draw_2d_shell("Valence Arrangement"), use_container_width=True)
+    st.plotly_chart(draw_2d_shell("Valence Arrangement"), use_container_width=True, key="shell_2")
 
 with col2_b:
     st.subheader("2.2. Internal 2p3/2 Coupling")
     st.write("The internal pairing of the 2p3/2 orbital remains intact, continuously providing a net j=1.5.")
-    st.plotly_chart(plot_internal_coupling("3 Neutrons -> Net j=1.5"), use_container_width=True)
+    st.plotly_chart(plot_internal_coupling("3 Neutrons -> Net j=1.5"), use_container_width=True, key="internal_2")
 
 with col2_c:
     st.subheader("2.3. Orbital Coupling to I=2")
     st.write("The orbitals cant backwards against each other, partially canceling to drop the total nuclear spin to 2.")
-    st.plotly_chart(plot_3d_vectors(1.5, 2.5, 2.0, "1.5 + 2.5 Re-coupled to 2"), use_container_width=True)
+    st.plotly_chart(plot_3d_vectors(1.5, 2.5, 2.0, "1.5 + 2.5 Re-coupled to 2"), use_container_width=True, key="vector_2")
 
 
 st.divider()
@@ -174,14 +174,14 @@ st.write("For hypothetical cascades or different nuclei, these exact same nucleo
 col3_a, col3_b, col3_c = st.columns(3)
 with col3_a:
     st.subheader("3.1. Schematic")
-    st.plotly_chart(draw_2d_shell("Valence Arrangement"), use_container_width=True)
+    st.plotly_chart(draw_2d_shell("Valence Arrangement"), use_container_width=True, key="shell_3")
 
 with col3_b:
     st.subheader("3.2. Internal 2p3/2 Coupling")
     st.write("Again, the internal state of the shell dictates the available starting momentum.")
-    st.plotly_chart(plot_internal_coupling("3 Neutrons -> Net j=1.5"), use_container_width=True)
+    st.plotly_chart(plot_internal_coupling("3 Neutrons -> Net j=1.5"), use_container_width=True, key="internal_3")
 
 with col3_c:
     st.subheader("3.3. Orbital Coupling to I=1")
     st.write("The j=1.5 and j=2.5 vectors point heavily in opposite directions, shrinking the total spin sum down to 1.")
-    st.plotly_chart(plot_3d_vectors(1.5, 2.5, 1.0, "1.5 + 2.5 Re-coupled to 1"), use_container_width=True)
+    st.plotly_chart(plot_3d_vectors(1.5, 2.5, 1.0, "1.5 + 2.5 Re-coupled to 1"), use_container_width=True, key="vector_3")
