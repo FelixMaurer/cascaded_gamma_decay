@@ -28,16 +28,18 @@ with c2:
     # Draw the Core
     fig_shell.add_shape(type="circle", x0=-2, y0=-2, x1=2, y1=2, 
                         fillcolor="lightgray", line_color="black")
-    fig_shell.add_annotation(x=0, y=0, text="Stable Core<br>(28p, 28n)<br>Spin = 0", showarrow=False, font=dict(size=14))
+    # Darkened the text here
+    fig_shell.add_annotation(x=0, y=0, text="<b>Stable Core<br>(28p, 28n)<br>Spin = 0</b>", 
+                             showarrow=False, font=dict(size=14, color="black"))
     
     # Draw Valence Shells
     fig_shell.add_shape(type="circle", x0=-3.5, y0=-3.5, x1=3.5, y1=3.5, 
                         line=dict(color="blue", dash="dash"))
-    fig_shell.add_annotation(x=0, y=3.7, text="2p3/2 Orbital", showarrow=False, font=dict(color="blue"))
+    fig_shell.add_annotation(x=0, y=3.7, text="2p3/2 Orbital", showarrow=False, font=dict(color="blue", size=14))
     
     fig_shell.add_shape(type="circle", x0=-5, y0=-5, x1=5, y1=5, 
                         line=dict(color="green", dash="dash"))
-    fig_shell.add_annotation(x=0, y=5.2, text="1f5/2 Orbital", showarrow=False, font=dict(color="green"))
+    fig_shell.add_annotation(x=0, y=5.2, text="1f5/2 Orbital", showarrow=False, font=dict(color="green", size=14))
     
     # Add 4 Valence Neutrons
     theta_in = [np.pi/4, 3*np.pi/4, 5*np.pi/4] 
@@ -48,9 +50,10 @@ with c2:
     fig_shell.add_trace(go.Scatter(x=5.0*np.cos(theta_out), y=5.0*np.sin(theta_out), 
                                    mode='markers', marker=dict(size=15, color='green'), name="1 Neutron (1f5/2)"))
     
+    # Fixed the aspect ratio so circles do not become ovals!
     fig_shell.update_layout(title="Schematic of Ni-60 Valence Neutrons", 
                             xaxis=dict(visible=False, range=[-6, 6]), 
-                            yaxis=dict(visible=False, range=[-6, 6]),
+                            yaxis=dict(visible=False, range=[-6, 6], scaleanchor="x", scaleratio=1),
                             height=500, width=500, showlegend=True)
     st.plotly_chart(fig_shell, use_container_width=True)
 
@@ -58,15 +61,21 @@ st.divider()
 
 # --- SECTION 2: THE IN-BETWEEN STEP (INTERNAL COUPLING) ---
 st.header("2. The In-Between Step: Internal Coupling in the 2p3/2 Orbital")
-st.write("Before we add the two orbitals together, how do the 3 neutrons inside the 2p3/2 orbital get their total momentum of 1.5?")
 
 col_int1, col_int2 = st.columns([1, 2])
 
 with col_int1:
+    st.subheader("Where does j=1.5 come from?")
+    st.write("""
+    A single neutron's total momentum (j) is the sum of its orbital motion (l) and its intrinsic spin (s). 
+    * **Orbit (l):** The 'p' in 2p3/2 stands for an orbital momentum of l = 1.
+    * **Spin (s):** A neutron always has a built-in spin of s = 1/2.
+    * **Total (j):** j = l + s = 1 + 1/2 = 1.5.
+    """)
+    
     st.subheader("The Pairing Effect")
     st.write("""
-    Each of the 3 neutrons has an individual angular momentum of j=1.5. 
-    Because they share the exact same orbital, the Pauli Exclusion Principle forces them to arrange themselves efficiently.
+    Because they share the exact same orbital, the Pauli Exclusion Principle forces the 3 neutrons to arrange themselves efficiently.
     
     Two of the neutrons form a 'pair', orienting their momentum vectors in opposite directions. This internal pairing cancels their contribution to 0. 
     The total momentum of the entire orbital is therefore defined solely by the third, unpaired neutron.
