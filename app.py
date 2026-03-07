@@ -38,10 +38,35 @@ def draw_2d_shell(title_text):
     fig_shell.update_layout(title=title_text, 
                             xaxis=dict(visible=False, range=[-6, 6]), 
                             yaxis=dict(visible=False, range=[-6, 6], scaleanchor="x", scaleratio=1),
-                            height=400, width=400, showlegend=False,
+                            height=350, showlegend=False,
                             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                             margin=dict(l=0, r=0, t=40, b=0))
     return fig_shell
+
+# --- HELPER FUNCTION: 3D INTERNAL COUPLING ---
+def plot_internal_coupling(title):
+    fig_internal = go.Figure()
+    
+    # Neutron 1 (Unpaired, pointing Z) - Cyan
+    fig_internal.add_trace(go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, 1.5],
+                               mode='lines+markers', name='Neutron 1 (Unpaired)', line=dict(width=6, color='cyan')))
+    # Neutron 2 (Paired, pointing X) - Magenta
+    fig_internal.add_trace(go.Scatter3d(x=[0, 1.5], y=[0, 0], z=[0, 0],
+                               mode='lines+markers', name='Neutron 2 (Paired)', line=dict(width=6, color='magenta')))
+    # Neutron 3 (Paired, pointing -X, canceling Neutron 2) - Magenta
+    fig_internal.add_trace(go.Scatter3d(x=[0, -1.5], y=[0, 0], z=[0, 0],
+                               mode='lines+markers', name='Neutron 3 (Paired)', line=dict(width=6, color='magenta')))
+    
+    # Resultant Orbital Vector - Dashed Cyan (matches the input of the next plot)
+    fig_internal.add_trace(go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, 1.5],
+                               mode='lines', name='Net Orbital j=1.5', line=dict(dash='dash', color='cyan', width=8)))
+    
+    fig_internal.update_layout(title=title, 
+                               scene=dict(aspectmode='cube', xaxis_title='X', yaxis_title='Y', zaxis_title='Z',
+                               xaxis=dict(range=[-2, 2]), yaxis=dict(range=[-2, 2]), zaxis=dict(range=[-2, 2])), 
+                               height=350, paper_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=40, b=0),
+                               legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01))
+    return fig_internal
 
 # --- HELPER FUNCTION: 3D VECTOR COUPLING WITH ARROWHEAD ---
 def plot_3d_vectors(v1, v2, target_mag, title):
@@ -60,7 +85,7 @@ def plot_3d_vectors(v1, v2, target_mag, title):
     norm = np.sqrt(end_y**2 + end_z**2)
     u_dir, v_dir, w_dir = 0, 0, 1 # Default fallback
     if norm > 0:
-        u_dir = 0  # Direction remains purely in YZ plane
+        u_dir = 0  
         v_dir = end_y / norm
         w_dir = end_z / norm
 
@@ -68,14 +93,14 @@ def plot_3d_vectors(v1, v2, target_mag, title):
     
     # Vector 1 (Orbital 1)
     fig.add_trace(go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, v1],
-                               mode='lines+markers', name=f'Orbital 1 (j={v1})', line=dict(width=8, color='cyan')))
+                               mode='lines+markers', name=f'2p3/2 Net (j={v1})', line=dict(width=8, color='cyan')))
     # Vector 2 (Orbital 2)
     fig.add_trace(go.Scatter3d(x=[0, end_x], y=[0, end_y], z=[v1, end_z],
-                               mode='lines+markers', name=f'Orbital 2 (j={v2})', line=dict(width=8, color='lime')))
+                               mode='lines+markers', name=f'1f5/2 (j={v2})', line=dict(width=8, color='lime')))
     
     # Resultant Vector Line (Total Spin) - Shifted by offset_x
     fig.add_trace(go.Scatter3d(x=[offset_x, offset_x], y=[0, end_y], z=[0, end_z],
-                               mode='lines', name=f'Total Spin = {target_mag}', line=dict(color='yellow', width=8)))
+                               mode='lines', name=f'Total Spin I={target_mag}', line=dict(color='yellow', width=8)))
     
     # Arrowhead (Cone) for Resultant - Shifted by offset_x
     fig.add_trace(go.Cone(x=[offset_x], y=[end_y], z=[end_z],
@@ -85,7 +110,8 @@ def plot_3d_vectors(v1, v2, target_mag, title):
     
     fig.update_layout(title=title, scene=dict(aspectmode='cube', xaxis_title='X', yaxis_title='Y', zaxis_title='Z',
                                               xaxis=dict(range=[-4, 4]), yaxis=dict(range=[-4, 4]), zaxis=dict(range=[0, 5])), 
-                                              height=450, paper_bgcolor="rgba(0,0,0,0)")
+                                              height=400, paper_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=40, b=0),
+                                              legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01))
     return fig
 
 
@@ -95,20 +121,23 @@ st.divider()
 # MAIN SECTION 1: THE INITIAL EXCITED STATE (I=4)
 # ==========================================
 st.header("1. The Initial Excited State (I = 4)")
-st.write("Following the beta decay of Co-60, the Ni-60 nucleus is formed in a highly excited configuration with a total spin of 4.")
+st.write("Following the beta decay of Co-60, the Ni-60 nucleus is formed in an excited configuration.")
 
-col1_a, col1_b = st.columns([1, 2])
+col1_a, col1_b, col1_c = st.columns(3)
 with col1_a:
-    st.subheader("1.1. Schematic of Ni-60")
-    st.plotly_chart(draw_2d_shell("Valence Arrangement (I=4)"), use_container_width=True)
+    st.subheader("1.1. Schematic")
+    st.plotly_chart(draw_2d_shell("Valence Arrangement"), use_container_width=True)
     
 with col1_b:
-    st.subheader("1.2. Internal Coupling in the 2p3/2 Orbital")
-    st.write("Before adding both shells together, the 3 neutrons in the 2p3/2 orbital must couple. Two neutrons pair up (spin antiparallel) and cancel each other out to 0. This leaves the third unpaired neutron to define the total momentum of this orbital: **j = 1.5**.")
-    
-    st.subheader("1.3. Coupling the Orbitals to Reach Spin 4")
-    st.write("The unpaired j=1.5 from the 2p3/2 orbital couples with the j=2.5 from the 1f5/2 orbital. To reach the maximum allowed spin of 4, the vectors must align perfectly parallel. *(Note: The yellow resultant vector is visually shifted slightly along the X-axis so it is not hidden behind the components).*")
+    st.subheader("1.2. Internal 2p3/2 Coupling")
+    st.write("Two neutrons cancel to 0 (magenta), leaving the unpaired neutron to define the orbital's j=1.5 momentum.")
+    st.plotly_chart(plot_internal_coupling("3 Neutrons -> Net j=1.5"), use_container_width=True)
+
+with col1_c:
+    st.subheader("1.3. Orbital Coupling to I=4")
+    st.write("The j=1.5 and j=2.5 orbitals align parallel to reach the maximum allowed spin of 4.")
     st.plotly_chart(plot_3d_vectors(1.5, 2.5, 4.0, "1.5 + 2.5 Re-coupled to 4"), use_container_width=True)
+
 
 st.divider()
 
@@ -116,18 +145,23 @@ st.divider()
 # MAIN SECTION 2: THE INTERMEDIATE STATE (I=2)
 # ==========================================
 st.header("2. The Intermediate State (I = 2)")
-st.write("The nucleus emits its first gamma quantum (1173 keV), shedding 2 units of angular momentum in a quadrupole transition. The neutrons re-align to drop the total nuclear spin to 2.")
+st.write("After the first quadrupole gamma emission, the nucleus sheds 2 units of angular momentum.")
 
-col2_a, col2_b = st.columns([1, 2])
+col2_a, col2_b, col2_c = st.columns(3)
 with col2_a:
-    st.subheader("2.1. Schematic of Ni-60")
-    st.write("The nucleons do not necessarily leave their respective energy shells; they can simply shift their quantum geometric alignment.")
-    st.plotly_chart(draw_2d_shell("Valence Arrangement (I=2)"), use_container_width=True)
+    st.subheader("2.1. Schematic")
+    st.plotly_chart(draw_2d_shell("Valence Arrangement"), use_container_width=True)
 
 with col2_b:
-    st.subheader("2.2. Re-coupling to Reach Spin 2")
-    st.write("Using the exact same orbital momenta (j=1.5 and j=2.5), the vectors cant backwards against each other. This partial cancellation successfully lowers the total resulting nuclear spin (yellow arrow) to exactly 2.")
+    st.subheader("2.2. Internal 2p3/2 Coupling")
+    st.write("The internal pairing of the 2p3/2 orbital remains intact, continuously providing a net j=1.5.")
+    st.plotly_chart(plot_internal_coupling("3 Neutrons -> Net j=1.5"), use_container_width=True)
+
+with col2_c:
+    st.subheader("2.3. Orbital Coupling to I=2")
+    st.write("The orbitals cant backwards against each other, partially canceling to drop the total nuclear spin to 2.")
     st.plotly_chart(plot_3d_vectors(1.5, 2.5, 2.0, "1.5 + 2.5 Re-coupled to 2"), use_container_width=True)
+
 
 st.divider()
 
@@ -135,15 +169,19 @@ st.divider()
 # MAIN SECTION 3: THE I=1 STATE
 # ==========================================
 st.header("3. Alternative Re-coupling (I = 1)")
-st.write("While the actual Ni-60 cascade goes 4-2-0, other configurations or hypothetical cascades require different intermediate states. Here is how those same nucleons can couple to reach a total spin of 1.")
+st.write("For hypothetical cascades or different nuclei, these exact same nucleons can couple to reach a total spin of 1.")
 
-col3_a, col3_b = st.columns([1, 2])
+col3_a, col3_b, col3_c = st.columns(3)
 with col3_a:
-    st.subheader("3.1. Schematic of Ni-60")
-    st.write("Once again, the 4 valence neutrons occupy the fp-shell, but their internal vector orientations are severely misaligned compared to the I=4 state.")
-    st.plotly_chart(draw_2d_shell("Valence Arrangement (I=1)"), use_container_width=True)
+    st.subheader("3.1. Schematic")
+    st.plotly_chart(draw_2d_shell("Valence Arrangement"), use_container_width=True)
 
 with col3_b:
-    st.subheader("3.2. Re-coupling to Reach Spin 1")
-    st.write("To drop the total spin all the way down to 1, the j=1.5 and j=2.5 vectors must point heavily in opposite directions. The resulting total angular momentum vector shrinks significantly.")
+    st.subheader("3.2. Internal 2p3/2 Coupling")
+    st.write("Again, the internal state of the shell dictates the available starting momentum.")
+    st.plotly_chart(plot_internal_coupling("3 Neutrons -> Net j=1.5"), use_container_width=True)
+
+with col3_c:
+    st.subheader("3.3. Orbital Coupling to I=1")
+    st.write("The j=1.5 and j=2.5 vectors point heavily in opposite directions, shrinking the total spin sum down to 1.")
     st.plotly_chart(plot_3d_vectors(1.5, 2.5, 1.0, "1.5 + 2.5 Re-coupled to 1"), use_container_width=True)
