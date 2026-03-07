@@ -28,7 +28,6 @@ with c2:
     # Draw the Core
     fig_shell.add_shape(type="circle", x0=-2, y0=-2, x1=2, y1=2, 
                         fillcolor="lightgray", line_color="black")
-    # Darkened the text here
     fig_shell.add_annotation(x=0, y=0, text="<b>Stable Core<br>(28p, 28n)<br>Spin = 0</b>", 
                              showarrow=False, font=dict(size=14, color="black"))
     
@@ -50,7 +49,6 @@ with c2:
     fig_shell.add_trace(go.Scatter(x=5.0*np.cos(theta_out), y=5.0*np.sin(theta_out), 
                                    mode='markers', marker=dict(size=15, color='green'), name="1 Neutron (1f5/2)"))
     
-    # Fixed the aspect ratio so circles do not become ovals!
     fig_shell.update_layout(title="Schematic of Ni-60 Valence Neutrons", 
                             xaxis=dict(visible=False, range=[-6, 6]), 
                             yaxis=dict(visible=False, range=[-6, 6], scaleanchor="x", scaleratio=1),
@@ -94,7 +92,7 @@ with col_int2:
     fig_internal.add_trace(go.Scatter3d(x=[0, -1.5], y=[0, 0], z=[0, 0],
                                mode='lines+markers', name='Neutron 3 (j=1.5)', line=dict(width=6, color='darkblue')))
     
-    # Resultant (same as Neutron 1)
+    # Resultant
     fig_internal.add_trace(go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, 1.5],
                                mode='lines', name='Total Orbital j = 1.5', line=dict(dash='dash', color='red', width=8)))
     
@@ -123,21 +121,21 @@ def plot_3d_vectors(v1, v2, target_mag, title):
     fig.add_trace(go.Scatter3d(x=[0, v2*sin_theta], y=[0, 0], z=[0, v1 + v2*cos_theta],
                                mode='lines', name=f'Total Spin = {target_mag}', line=dict(dash='dash', color='red', width=6)))
     
-    fig.update_layout(title=title, scene=dict(aspectmode='cube', xaxis_title='X', yaxis_title='Y', zaxis_title='Z'), height=400)
+    fig.update_layout(title=title, scene=dict(aspectmode='cube', xaxis_title='X', yaxis_title='Y', zaxis_title='Z',
+                                              xaxis=dict(range=[-4, 4]), yaxis=dict(range=[-4, 4]), zaxis=dict(range=[0, 5])), 
+                                              height=400)
     return fig
 
 col_alt1, col_alt2 = st.columns(2)
 
 with col_alt1:
     st.subheader("Alternative A: Mixed Orbitals")
-    st.write("The remaining unpaired j=1.5 from 2p3/2 couples with the j=2.5 from 1f5/2.")
-    st.plotly_chart(plot_3d_vectors(1.5, 2.5, 4.0, "1.5 + 2.5 Coupling"), use_container_width=True)
+    st.plotly_chart(plot_3d_vectors(1.5, 2.5, 4.0, "1.5 + 2.5 Coupling = 4"), use_container_width=True)
     st.caption("They align perfectly parallel to reach the maximum possible sum of 4.")
 
 with col_alt2:
     st.subheader("Alternative B: Same Orbital")
-    st.write("Alternatively, what if two unpaired neutrons both occupied the 1f5/2 shell (j=2.5 each)?")
-    st.plotly_chart(plot_3d_vectors(2.5, 2.5, 4.0, "2.5 + 2.5 Coupling"), use_container_width=True)
+    st.plotly_chart(plot_3d_vectors(2.5, 2.5, 4.0, "2.5 + 2.5 Coupling = 4"), use_container_width=True)
     st.caption("Because their combined maximum is 5, they sit at an angle to each other to sum precisely to 4.")
 
 st.divider()
@@ -150,3 +148,29 @@ While the vectors and shells above provide an intuitive picture, nature is more 
 * **Indistinguishability:** We cannot paint a neutron red to track it. We can only measure the collective property of the nucleus transitioning from an initial state to an intermediate state.
 * **Pauli Exclusion Principle:** Because neutrons are identical fermions, certain angles and couplings are strictly forbidden if they occupy the exact same orbital.
 """)
+
+st.divider()
+
+# --- SECTION 5: THE INTERMEDIATE STATE (SPIN 2) ---
+st.header("5. The Intermediate State: Dropping to Spin 2")
+st.write("""
+When the nucleus emits the first gamma quantum (1173 keV), it sheds 2 units of angular momentum. 
+The nucleus is now in the intermediate state with a total spin of **I = 2**. 
+
+Fascinatingly, the neutrons do not necessarily have to change which shells they live in! 
+They can simply undergo a quantum 're-alignment'—shifting the angle of their vectors to cancel each other out more heavily.
+""")
+
+col_int_1, col_int_2 = st.columns(2)
+
+with col_int_1:
+    st.subheader("Re-aligning the Mixed Orbitals")
+    st.write("Using the exact same orbitals from Alternative A (j=1.5 and j=2.5), watch how the vectors shift their angle to sum to 2 instead of 4.")
+    st.plotly_chart(plot_3d_vectors(1.5, 2.5, 2.0, "1.5 + 2.5 Re-coupled = 2"), use_container_width=True)
+    st.caption("The vectors are now 'canted' backwards against each other, successfully lowering the total nuclear spin to 2.")
+
+with col_int_2:
+    st.subheader("Re-aligning the Same Orbital")
+    st.write("Using the orbitals from Alternative B (j=2.5 and j=2.5), they also shift to drop the total spin down to 2.")
+    st.plotly_chart(plot_3d_vectors(2.5, 2.5, 2.0, "2.5 + 2.5 Re-coupled = 2"), use_container_width=True)
+    st.caption("A sharper angle allows the two 2.5 vectors to heavily cancel, yielding the required intermediate spin of 2.")
