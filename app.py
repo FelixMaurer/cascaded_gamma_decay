@@ -171,7 +171,7 @@ with col1_c:
     st.write("The j=1.5 and j=2.5 orbitals align parallel to reach the maximum allowed spin of 4.")
     st.plotly_chart(plot_3d_vectors(1.5, 2.5, 4.0, "1.5 + 2.5 Re-coupled to 4"), use_container_width=True, key="vector_1")
 
-# --- SECTION 1.4: ALTERNATIVE CONFIGURATIONS ---
+# --- SECTION 1.4: ALTERNATIVE CONFIGURATIONS (I=4) ---
 st.write("---")
 st.subheader("1.4. Alternative Microscopic Configurations")
 col1_d, col1_e, col1_f = st.columns(3)
@@ -183,8 +183,8 @@ with col1_d:
 with col1_e:
     st.write("The configuration above (one $j=1.5$ coupling with one $j=2.5$) is not the only way the nucleus can reach an initial state of $I=4$.")
     st.write("**Why are there many alternatives?**")
-    st.write("1. **Configuration Mixing:** In quantum mechanics, the nucleus does not exist in just one static arrangement. The true state is a *superposition* of multiple valid shell arrangements. The neutrons are constantly shifting between the $fp$-shell orbitals.")
-    st.write("2. **Multiple Valid Couplings:** If two neutrons occupy the $1f_{5/2}$ shell ($j=2.5$ each), they can also couple together to form $I=4$. Because their maximum combined spin is 5, they sit at an angle to exactly sum to 4.")
+    st.write("1. **Configuration Mixing:** The nucleus exists as a *superposition* of multiple valid shell arrangements simultaneously.")
+    st.write("2. **Multiple Valid Couplings:** If two neutrons occupy the $1f_{5/2}$ shell ($j=2.5$ each), they can also couple together to form $I=4$. Because their maximum combined spin is 5, they sit at an angle to sum perfectly to 4.")
 
 with col1_f:
     st.write("**Alternative Vector Coupling**")
@@ -213,6 +213,23 @@ with col2_c:
     st.write("The orbitals cant backwards against each other, partially canceling to drop the total nuclear spin to 2.")
     st.plotly_chart(plot_3d_vectors(1.5, 2.5, 2.0, "1.5 + 2.5 Re-coupled to 2"), use_container_width=True, key="vector_2")
 
+# --- SECTION 2.4: ALTERNATIVE CONFIGURATIONS (I=2) ---
+st.write("---")
+st.subheader("2.4. Alternative Microscopic Configurations (Dropping to 2)")
+col2_d, col2_e, col2_f = st.columns(3)
+
+with col2_d:
+    st.write("**Alternative Schematic:** Two neutrons remaining in 1f5/2.")
+    st.plotly_chart(draw_2d_shell("Alternative Valence (I=2)", num_in=2, num_out=2), use_container_width=True, key="shell_2_alt")
+
+with col2_e:
+    st.write("**How does the alternative configuration shed spin?**")
+    st.write("Just like the primary configuration, the alternative configuration consisting of two neutrons in the $1f_{5/2}$ shell does not require the neutrons to immediately jump back down to a lower shell.")
+    st.write("To emit the $\gamma_1$ photon and drop down to an intermediate spin of $I=2$, the two $j=2.5$ momentum vectors simply re-orient themselves. By pushing further apart from each other, they cancel each other out more severely, dropping their total vector sum from 4 down to exactly 2.")
+
+with col2_f:
+    st.write("**Alternative Vector Coupling**")
+    st.plotly_chart(plot_3d_vectors(2.5, 2.5, 2.0, "Alternative Coupling: 2.5 + 2.5 = 2"), use_container_width=True, key="alt_vector_2")
 
 st.divider()
 
