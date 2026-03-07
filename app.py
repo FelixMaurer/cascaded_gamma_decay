@@ -44,20 +44,17 @@ def plot_single_nucleus_first_gamma(mode="m=+2"):
     s = np.sin(theta)
 
     if mode == "m=0":
-        # E2 quadrupole mode with m = 0
         W = (c**2) * (s**2)
         title = "Single oriented nucleus: E2 component m = 0"
-        note = "Pattern: zero on axis and in the equatorial plane; maxima at intermediate angles"
+        note = "zero on axis and in the equatorial plane"
     elif mode in ["m=+1", "m=-1"]:
-        # E2 quadrupole mode with m = ±1
         W = 1 - 3*c**2 + 4*c**4
         title = f"Single oriented nucleus: E2 component {mode}"
-        note = "Pattern: weaker near intermediate angles, stronger toward axis and equator"
+        note = "weaker at intermediate angles"
     else:
-        # default: m = ±2, good intuitive stretched example
         W = 1 - c**4
         title = "Single oriented nucleus: E2 component m = +2"
-        note = "Pattern: zero along the quantization axis, strongest around the equator"
+        note = "zero along the quantization axis, strongest near the equator"
 
     W = W / np.max(W)
 
@@ -79,14 +76,14 @@ def plot_single_nucleus_first_gamma(mode="m=+2"):
             radialaxis=dict(visible=False, range=[0, 1.05]),
             angularaxis=dict(direction="counterclockwise", rotation=90)
         ),
-        height=340,
+        height=400,
         paper_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=10, r=10, t=50, b=10),
+        margin=dict(l=10, r=10, t=50, b=70),
         annotations=[
             dict(
                 text=note + "<br>z-axis = quantization axis",
-                x=0.5, y=-0.12, xref="paper", yref="paper",
-                showarrow=False, font=dict(size=11)
+                x=0.5, y=0.02, xref="paper", yref="paper",
+                showarrow=False, font=dict(size=11), align="center"
             )
         ],
         showlegend=False
@@ -457,9 +454,7 @@ def draw_transition_rule_cartoon():
         showlegend=False
     ))
 
-    # -----------------------------
     # Gamma arrow in the middle
-    # -----------------------------
     fig.add_annotation(
         x=1.0, y=2.35, ax=-1.0, ay=2.35,
         xref="x", yref="y", axref="x", ayref="y",
@@ -471,92 +466,93 @@ def draw_transition_rule_cartoon():
     )
 
     fig.add_annotation(
-        x=0.0, y=3.05,
+        x=0.0, y=3.10,
         text="<b>γ₁ = 1173 keV</b>",
         showarrow=False,
-        font=dict(size=14, color="orange"),
-        bgcolor="rgba(255,255,255,0.85)"
+        font=dict(size=14, color="orange")
     )
 
     fig.add_annotation(
         x=0.0, y=2.55,
         text="dominant E2<br>carries away 2ħ",
         showarrow=False,
-        font=dict(size=12, color="orange"),
-        bgcolor="rgba(255,255,255,0.85)"
+        font=dict(size=12, color="orange")
     )
 
-    # -----------------------------
-    # State labels above
-    # -----------------------------
+    # Top labels
     fig.add_annotation(
-        x=-4.8, y=4.55,
+        x=-4.9, y=4.55,
         text="<b>Before</b><br>example coupling to J = 4",
         showarrow=False,
         align="center",
-        font=dict(size=13),
-        bgcolor="rgba(255,255,255,0.9)",
-        bordercolor="rgba(0,0,0,0.15)",
-        borderwidth=1
+        font=dict(size=13)
     )
 
     fig.add_annotation(
-        x=4.2, y=4.55,
+        x=4.5, y=4.55,
         text="<b>After</b><br>example coupling to J = 2",
         showarrow=False,
         align="center",
-        font=dict(size=13),
-        bgcolor="rgba(255,255,255,0.9)",
-        bordercolor="rgba(0,0,0,0.15)",
-        borderwidth=1
+        font=dict(size=13)
     )
 
-    # -----------------------------
-    # Bottom legend instead of on-vector labels
-    # -----------------------------
+    # Side labels for left state
     fig.add_annotation(
-        x=-4.7, y=-0.45,
-        text="<span style='color:cyan'><b>cyan</b></span>: effective j = 1.5",
+        x=-5.55, y=1.0,
+        text="<span style='color:cyan'><b>effective<br>j = 1.5</b></span>",
         showarrow=False,
-        font=dict(size=12),
-        align="left",
-        bgcolor="rgba(255,255,255,0.9)"
-    )
-
-    fig.add_annotation(
-        x=0.0, y=-0.45,
-        text="<span style='color:lime'><b>lime</b></span>: effective j = 2.5",
-        showarrow=False,
-        font=dict(size=12),
-        align="center",
-        bgcolor="rgba(255,255,255,0.9)"
-    )
-
-    fig.add_annotation(
-        x=4.7, y=-0.45,
-        text="<span style='color:yellow'><b>yellow</b></span>: total J",
-        showarrow=False,
-        font=dict(size=12),
         align="right",
-        bgcolor="rgba(255,255,255,0.9)"
+        font=dict(size=12)
+    )
+    fig.add_annotation(
+        x=-2.15, y=3.05,
+        text="<span style='color:lime'><b>effective<br>j = 2.5</b></span>",
+        showarrow=False,
+        align="left",
+        font=dict(size=12)
+    )
+    fig.add_annotation(
+        x=-5.55, y=3.7,
+        text="<span style='color:yellow'><b>total<br>J = 4</b></span>",
+        showarrow=False,
+        align="right",
+        font=dict(size=12)
     )
 
-    # -----------------------------
-    # Central explanatory note
-    # -----------------------------
+    # Side labels for right state
     fig.add_annotation(
-        x=0.0, y=0.45,
+        x=2.55, y=1.0,
+        text="<span style='color:cyan'><b>effective<br>j = 1.5</b></span>",
+        showarrow=False,
+        align="right",
+        font=dict(size=12)
+    )
+    fig.add_annotation(
+        x=6.05, y=1.95,
+        text="<span style='color:lime'><b>effective<br>j = 2.5</b></span>",
+        showarrow=False,
+        align="left",
+        font=dict(size=12)
+    )
+    fig.add_annotation(
+        x=2.4, y=1.8,
+        text="<span style='color:yellow'><b>total<br>J = 2</b></span>",
+        showarrow=False,
+        align="right",
+        font=dict(size=12)
+    )
+
+    # Central note
+    fig.add_annotation(
+        x=0.0, y=0.35,
         text="<b>Selection rule cartoon</b><br>same valence space, different total coupling",
         showarrow=False,
-        font=dict(size=12),
-        bgcolor="rgba(255,255,255,0.9)",
-        bordercolor="rgba(0,0,0,0.15)",
-        borderwidth=1
+        font=dict(size=12)
     )
 
     fig.update_layout(
         title="First emission: example recoupling from J = 4 to J = 2",
-        xaxis=dict(visible=False, range=[-6.4, 6.4]),
+        xaxis=dict(visible=False, range=[-6.6, 6.6]),
         yaxis=dict(visible=False, range=[-0.9, 5.1], scaleanchor="x", scaleratio=1),
         height=390,
         paper_bgcolor="rgba(0,0,0,0)",
@@ -1063,8 +1059,8 @@ with col4_c:
         "To make the angular pattern well-defined, we choose a quantization axis and one example E2 component."
     )
     st.write(
-        "A useful illustrative choice is the stretched component **mᵢ = 4 → m_f = 2**, "
-        "for which the emitted first gamma carries the quadrupole component **q = Δm = 2**."
+        r"A useful illustrative choice is the stretched component $m_i = 4 \rightarrow m_f = 2$, "
+        r"for which the emitted first gamma carries the quadrupole component $q = \Delta m = 2$."
     )
     st.plotly_chart(
         plot_single_nucleus_first_gamma(mode="m=+2"),
@@ -1079,11 +1075,12 @@ st.write(
     "The pattern is therefore not spherical. It reflects the angular structure of the **E2 quadrupole field**."
 )
 st.write(
-    "In this example we chose the **m = +2** quadrupole component. That component is strongest away from the axis "
-    "and vanishes along it, so the radiation is concentrated around the equatorial region."
+    "In this example we chose the stretched component "
+    r"$m_i = 4 \rightarrow m_f = 2$. "
+    "That component is strongest away from the axis and vanishes along it, so the radiation is concentrated around the equatorial region."
 )
 st.write(
-    "More generally, different allowed values of **Δm = mᵢ - m_f** correspond to different quadrupole components, "
+    r"More generally, different allowed values of $\Delta m = m_i - m_f$ correspond to different quadrupole components, "
     "and each component has its own characteristic angular pattern."
 )
 
