@@ -1255,4 +1255,166 @@ with col6_b:
         "This complex wave geometry is exactly what allows the photon to carry away the 2 units of angular "
         "momentum required by the J = 4 to J = 2 transition rules."
     )
+
+st.divider()
+
+# =====================================================================
+# SECTION 7
+# =====================================================================
+st.header("7. Visualizing the 'Why': Dipole vs. Quadrupole")
+st.write(
+    "To understand why we get an E2 (Quadrupole) instead of an E1 (Dipole) photon, we have to look "
+    "at how the nucleus moves. A photon is created by moving electrical charges. "
+)
+
+col7_a, col7_b = st.columns(2)
+
+with col7_a:
+    st.subheader("7.1. Dipole (L=1) - The 'Slosh'")
+    st.write(
+        "In a dipole transition, the center of positive charge oscillates back and forth relative to the center of mass. "
+        "This requires breaking apart the tightly bound core, which takes immense energy (Giant Dipole Resonance). "
+        "It doesn't happen in our low-energy Ni-60 cascade."
+    )
+    
+    # Dipole Animation (2D)
+    t_vals = np.linspace(0, 2*np.pi, 30)
+    theta_circ = np.linspace(0, 2*np.pi, 100)
+    dipole_frames = []
+    
+    for i, t in enumerate(t_vals):
+        y_shift = 0.5 * np.sin(t)
+        x = np.cos(theta_circ)
+        y = np.sin(theta_circ) + y_shift
+        dipole_frames.append(go.Frame(data=[go.Scatter(x=x, y=y, mode="lines", fill="toself", fillcolor="rgba(255,100,100,0.6)", line_color="red")], name=str(i)))
+
+    fig_dipole = go.Figure(
+        data=[go.Scatter(x=np.cos(theta_circ), y=np.sin(theta_circ), mode="lines", fill="toself", fillcolor="rgba(255,100,100,0.6)", line_color="red")],
+        layout=go.Layout(
+            xaxis=dict(range=[-2, 2], visible=False), yaxis=dict(range=[-2, 2], visible=False),
+            height=300, margin=dict(l=0, r=0, t=0, b=0),
+            updatemenus=[dict(type="buttons", showactive=False, y=0, x=0.5, xanchor="center", yanchor="top",
+                              buttons=[dict(label="▶ Play Dipole", method="animate", args=[None, dict(frame=dict(duration=50, redraw=True), transition=dict(duration=0), mode='immediate')])])]
+        ), frames=dipole_frames
+    )
+    st.plotly_chart(fig_dipole, use_container_width=True, key="anim_dipole")
+
+with col7_b:
+    st.subheader("7.2. Quadrupole (L=2) - The 'Squish'")
+    st.write(
+        "In a quadrupole transition, the center of mass stays perfectly still. Instead, the *shape* "
+        "stretches and compresses. The valence nucleons rearrange their orbits from a stretched state ($J=4$) "
+        "to a round state ($J=2$), 'squishing' the charge and emitting the E2 photon."
+    )
+    
+    # Quadrupole Animation (2D)
+    quad_frames = []
+    for i, t in enumerate(t_vals):
+        stretch = 1 + 0.3 * np.sin(t)
+        shrink = 1 / stretch
+        x = shrink * np.cos(theta_circ)
+        y = stretch * np.sin(theta_circ)
+        quad_frames.append(go.Frame(data=[go.Scatter(x=x, y=y, mode="lines", fill="toself", fillcolor="rgba(100,100,255,0.6)", line_color="blue")], name=str(i)))
+
+    fig_quad = go.Figure(
+        data=[go.Scatter(x=np.cos(theta_circ), y=np.sin(theta_circ), mode="lines", fill="toself", fillcolor="rgba(100,100,255,0.6)", line_color="blue")],
+        layout=go.Layout(
+            xaxis=dict(range=[-2, 2], visible=False), yaxis=dict(range=[-2, 2], visible=False),
+            height=300, margin=dict(l=0, r=0, t=0, b=0),
+            updatemenus=[dict(type="buttons", showactive=False, y=0, x=0.5, xanchor="center", yanchor="top",
+                              buttons=[dict(label="▶ Play Quadrupole", method="animate", args=[None, dict(frame=dict(duration=50, redraw=True), transition=dict(duration=0), mode='immediate')])])]
+        ), frames=quad_frames
+    )
+    st.plotly_chart(fig_quad, use_container_width=True, key="anim_quad")
+
+st.divider()
+
+# =====================================================================
+# SECTION 8
+# =====================================================================
+st.header("8. Animation: The Emitted E2 Radiation Pattern")
+st.write(
+    "Because the nucleus is 'squishing' symmetrically (as seen above), the photon wave it creates doesn't just travel in one direction. "
+    "It creates a complex, 4-lobed wave geometry in space. This animation shows the intensity of the E2 ($m=\pm2$) radiation field "
+    "pulsing outward from the nucleus. Notice how the radiation is strictly zero along the vertical (quantization) axis!"
+)
+
+# 3D Pulsing Wave Animation
+phi_3d = np.linspace(0, 2 * np.pi, 60)
+theta_3d = np.linspace(0, np.pi, 60)
+phi_3d, theta_3d = np.meshgrid(phi_3d, theta_3d)
+
+# Angular dependence for m=2 E2
+angular_part = 1 - np.cos(theta_3d)**4
+
+wave_frames = []
+for i, t in enumerate(t_vals):
+    # Pulse amplitude outward
+    r = angular_part * (0.5 + 0.5 * abs(np.sin(t)))
+    
+    x = r * np.sin(theta_3d) * np.cos(phi_3d)
+    y = r * np.sin(theta_3d) * np.sin(phi_3d)
+    z = r * np.cos(theta_3d)
+    wave_frames.append(go.Frame(data=[go.Surface(x=x, y=y, z=z, colorscale='Viridis', showscale=False)], name=str(i)))
+
+r_init = angular_part * 0.5
+fig_wave = go.Figure(
+    data=[go.Surface(x=r_init * np.sin(theta_3d) * np.cos(phi_3d), 
+                     y=r_init * np.sin(theta_3d) * np.sin(phi_3d), 
+                     z=r_init * np.cos(theta_3d), colorscale='Viridis', showscale=False)],
+    layout=go.Layout(
+        scene=dict(xaxis=dict(range=[-1.5, 1.5], visible=False), yaxis=dict(range=[-1.5, 1.5], visible=False), zaxis=dict(range=[-1.5, 1.5], visible=False), aspectmode='cube'),
+        height=500, margin=dict(l=0, r=0, t=0, b=0),
+        updatemenus=[dict(type="buttons", showactive=False, y=0.05, x=0.5, xanchor="center", yanchor="bottom",
+                          buttons=[dict(label="▶ Animate E2 Wave", method="animate", args=[None, dict(frame=dict(duration=80, redraw=True), transition=dict(duration=0), mode='immediate')])])]
+    ), frames=wave_frames
+)
+st.plotly_chart(fig_wave, use_container_width=True, key="anim_wave")
+
+st.divider()
+
+# =====================================================================
+# SECTION 9
+# =====================================================================
+st.header("9. Animation: Vectors in Motion (Conserving Angular Momentum)")
+st.write(
+    "Finally, let's look at the vector math in motion. The nucleus starts with $J=4$. It transitions down to $J=2$. "
+    "To conserve angular momentum in the universe, the photon **must** fly away carrying an angular momentum vector of $L=2$. "
+    "Watch the $J=4$ vector split into the new nuclear state and the emitted photon."
+)
+
+vector_frames = []
+num_steps = 30
+for i in range(num_steps):
+    progress = i / (num_steps - 1)
+    
+    # Nuclear vector shrinks from 4 to 2
+    current_j = 4.0 - (2.0 * progress)
+    
+    # Photon vector grows out of the difference and moves away radially
+    photon_len = 2.0 * progress
+    photon_x = 3.0 * progress  # moves to the right
+    photon_z = current_j + (photon_len / 2) # offset slightly for visual clarity
+
+    frame_data = [
+        # Nuclear Vector (shrinking)
+        go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, current_j], mode="lines+markers", line=dict(width=10, color="yellow"), marker=dict(size=[0, 8], color="yellow")),
+        # Photon Vector (moving away)
+        go.Scatter3d(x=[photon_x, photon_x], y=[0, 0], z=[photon_z, photon_z + photon_len], mode="lines+markers", line=dict(width=6, color="orange"), marker=dict(size=[0, 5], color="orange"))
+    ]
+    vector_frames.append(go.Frame(data=frame_data, name=str(i)))
+
+fig_vectors = go.Figure(
+    data=[
+        go.Scatter3d(x=[0, 0], y=[0, 0], z=[0, 4], mode="lines+markers", line=dict(width=10, color="yellow"), marker=dict(size=[0, 8], color="yellow"), name="Nuclear J"),
+        go.Scatter3d(x=[0, 0], y=[0, 0], z=[4, 4], mode="lines+markers", line=dict(width=6, color="orange"), marker=dict(size=[0, 5], color="orange"), name="Photon L")
+    ],
+    layout=go.Layout(
+        scene=dict(xaxis=dict(range=[-1, 4], title="Distance"), yaxis=dict(range=[-1, 1], visible=False), zaxis=dict(range=[0, 5], title="Angular Momentum (z)"), aspectmode='cube'),
+        height=450, margin=dict(l=0, r=0, t=0, b=0),
+        updatemenus=[dict(type="buttons", showactive=False, y=0.9, x=0.2, xanchor="center", yanchor="top",
+                          buttons=[dict(label="▶ Split Vectors", method="animate", args=[None, dict(frame=dict(duration=60, redraw=True), transition=dict(duration=0), mode='immediate')])])]
+    ), frames=vector_frames
+)
+st.plotly_chart(fig_vectors, use_container_width=True, key="anim_vectors")
     
