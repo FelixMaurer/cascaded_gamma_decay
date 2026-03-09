@@ -1098,3 +1098,56 @@ st.write(
     "After normalization, that gives the polar pattern shown above. "
     "This is the right object to visualize when you want the first emission from **one oriented nucleus**, not yet the bulk sample."
 )
+
+st.divider()
+
+# =====================================================================
+# SECTION 5
+# =====================================================================
+st.header("5. Why exactly is it a Quadrupole (E2) Transition?")
+st.write(
+    "It is a very intuitive guess to think about the photon's intrinsic spin! You are absolutely right "
+    "that a single photon has an intrinsic spin of 1. However, to understand why this transition is a "
+    "quadrupole ($L=2$) rather than a dipole ($L=1$), we have to look at how the photon actually leaves the nucleus."
+)
+
+st.info(
+    """
+    **Intrinsic Spin vs. Total Angular Momentum**
+
+    While a photon does have an intrinsic spin of 1, it can also carry **orbital angular momentum** depending on 
+    the "shape" of the wave it forms as it radiates away from the nucleus. 
+    
+    The **total** angular momentum ($L$) carried away by the photon is the combination of its intrinsic spin and 
+    its orbital angular momentum. Therefore, a photon can carry away $L = 1, 2, 3$, etc.
+    """
+)
+
+st.subheader("5.1. The Math: Conservation of Angular Momentum")
+st.write(
+    "In our cascade, the nucleus transitions from $J = 4$ to $J = 2$. By the laws of quantum mechanics, "
+    "the total angular momentum must be conserved. The angular momentum carried away by the photon ($L$) "
+    "must bridge the gap between the initial and final states:"
+)
+st.latex(r"|J_i - J_f| \leq L \leq J_i + J_f")
+st.write(
+    "Since $|4 - 2| = 2$, the photon **must** carry away at least 2 units of angular momentum. "
+    "It physically cannot bridge a $\Delta J = 2$ gap with only $L=1$ (a dipole). Because the minimum required "
+    "angular momentum is 2, and parity does not change ($+ \rightarrow +$), the transition is classified as "
+    "an **Electric Quadrupole (E2)**."
+)
+
+st.subheader("5.2. The Physics: What is a Quadrupole, Intuitively?")
+st.write(
+    "If a photon carries away $L=1$ (dipole), it implies the center of positive charge in the nucleus briefly "
+    "sloshed back and forth relative to the center of mass. "
+    "But in this low-energy transition, the protons and neutrons are tightly bound and moving around the center together."
+)
+st.write(
+    "Instead of the center of charge shifting, the **overall shape** of the charge distribution changes. "
+    "Imagine the nucleus transitioning from a stretched, rugby-ball shape (high angular momentum, $J=4$) to "
+    "a more compact, spherical shape ($J=2$).  "
+    "This stretching and compressing of the charge distribution—without shifting its center—is the exact physical definition "
+    "of a changing electric quadrupole moment. That changing shape is what acts as the 'antenna' to broadcast the E2 photon!"
+)
+
