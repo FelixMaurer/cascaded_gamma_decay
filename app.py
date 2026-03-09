@@ -1,14 +1,15 @@
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
-st.set_page_config(page_title="Ni-60 Spin Cascades (3D)", layout="wide")
+st.set_page_config(page_title="Ni-60 Spin Cascades", layout="wide")
 
 st.title("Ni-60 Excited States: 3D Interactive Valence Coupling")
 st.write(
-    "A unified 3D visual explanation of the 4→2→0 gamma-gamma cascade in "
+    "A unified visual explanation of the 4→2→0 gamma-gamma cascade in "
     "Ni-60. Use the interactive viewers to rotate the nucleus and toggle "
-    "different physical layers (orbits, vectors, charge distributions, and the core)."
+    "different physical layers."
 )
 
 st.info(
@@ -17,7 +18,7 @@ st.info(
 
     This app uses **pedagogical cartoons** to build intuition. They are **not literal pictures** of the nucleus.
     - **Orbits:** Nucleons don't move on fixed classical rings, but it is a helpful proxy for angular momentum planes.
-    - **Vectors:** Show the exact mathematical addition of angular momentum (1.5 for p3/2 and 2.5 for f5/2).
+    - **Vectors:** Show the exact mathematical addition of angular momentum ($j=1.5$ for $p_{3/2}$ and $j=2.5$ for $f_{5/2}$).
     - **Charge Distribution:** Represents the smeared-out probability cloud of the valence nucleons.
     """
 )
@@ -28,49 +29,37 @@ st.divider()
 # Helper Functions for 3D Geometry
 # =====================================================================
 def get_orthogonal_vectors(v):
-    """Find two orthogonal unit vectors to a given normal vector."""
     v = np.array(v) / np.linalg.norm(v)
     if abs(v[0]) < 0.9:
         u1 = np.array([1, 0, 0])
     else:
         u1 = np.array([0, 1, 0])
-    
     u1 = u1 - np.dot(u1, v) * v
     u1 = u1 / np.linalg.norm(u1)
     u2 = np.cross(v, u1)
     return u1, u2
 
 def get_orbit_points(normal, radius, phase=0.0, points=60):
-    """Generate 3D coordinates for a circular orbit and its tangent direction."""
     u1, u2 = get_orthogonal_vectors(normal)
-    
     theta = np.linspace(phase, 2 * np.pi + phase, points)
     orbit = np.array([radius * np.cos(t) * u1 + radius * np.sin(t) * u2 for t in theta])
-    
     tangent_dir = -np.sin(phase) * u1 + np.cos(phase) * u2
     tangent_dir = tangent_dir / np.linalg.norm(tangent_dir)
-    
     return orbit[:, 0], orbit[:, 1], orbit[:, 2], tangent_dir
 
 def get_ellipsoid(beta, radius=1.8, points=40):
-    """
-    Generate 3D coordinates for a charge distribution ellipsoid.
-    We use beta to drive an OBLATE deformation (squished along Z, bulging in XY).
-    """
     phi = np.linspace(0, 2 * np.pi, points)
     theta = np.linspace(0, np.pi, points)
     phi, theta = np.meshgrid(phi, theta)
-    
     rz = radius * (1 - beta)
     rxy = radius / np.sqrt(1 - beta)
-    
     x = rxy * np.sin(theta) * np.cos(phi)
     y = rxy * np.sin(theta) * np.sin(phi)
     z = rz * np.cos(theta)
     return x, y, z
 
 # =====================================================================
-# Main 3D Plotting Function
+# Main 3D Plotting Function (Sections 1-3)
 # =====================================================================
 def plot_3d_state(state_name, vectors, show_orbits, show_vectors, show_charge, show_core, beta, radii, phases, colors, names):
     fig = go.Figure()
@@ -81,14 +70,12 @@ def plot_3d_state(state_name, vectors, show_orbits, show_vectors, show_charge, s
 
     total_j = np.zeros(3)
     vector_scale = 1.0
-
     added_p32 = False
     added_f52 = False
 
     for i, v in enumerate(vectors):
         v = np.array(v)
         total_j += v
-        
         show_in_legend = False
         if names[i] == "p3/2" and not added_p32:
             show_in_legend = True
@@ -158,9 +145,6 @@ def plot_3d_state(state_name, vectors, show_orbits, show_vectors, show_charge, s
     )
     return fig
 
-# =====================================================================
-# State Configurations
-# =====================================================================
 phases_all = [0.0, np.pi/2, np.pi, 3*np.pi/2]
 
 vectors_J4 = [[1.5, 0, 0], [-1.5, 0, 0], [0, 0, 1.5], [0, 0, 2.5]] 
@@ -178,251 +162,173 @@ radii_J0   = [1.5, 1.5, 1.5, 1.5]
 colors_J0  = ["cyan", "cyan", "cyan", "cyan"]
 names_J0   = ["p3/2", "p3/2", "p3/2", "p3/2"]
 
-# =====================================================================
-# Sections 1, 2, 3 (Combined 3D Views)
-# =====================================================================
 col1, col2, col3 = st.columns(3)
 
 with col1:
     st.subheader("1. Initial State (J=4)")
-    st.write("Oblate (disk-like) configuration. Nucleon orbits align in the equator.")
     show_core_4 = st.checkbox("Show Core", value=True, key="core4")
     show_orb_4 = st.checkbox("Show Orbits", value=True, key="o4")
     show_vec_4 = st.checkbox("Show Vectors", value=True, key="v4")
     show_chg_4 = st.checkbox("Show Charge Overlay", value=True, key="c4")
     fig_4 = plot_3d_state("J=4 (Aligned)", vectors_J4, show_orb_4, show_vec_4, show_chg_4, show_core_4, beta=0.5, radii=radii_J4, phases=phases_all, colors=colors_J4, names=names_J4)
-    st.plotly_chart(fig_4, use_container_width=True, key="chart_state4")
+    st.plotly_chart(fig_4, use_container_width=True, key="c_s4")
 
 with col2:
     st.subheader("2. Intermediate State (J=2)")
-    st.write("Less stretched. Some orbits cross and cancel out each other's momentum.")
     show_core_2 = st.checkbox("Show Core", value=True, key="core2")
     show_orb_2 = st.checkbox("Show Orbits", value=True, key="o2")
     show_vec_2 = st.checkbox("Show Vectors", value=True, key="v2")
     show_chg_2 = st.checkbox("Show Charge Overlay", value=True, key="c2")
     fig_2 = plot_3d_state("J=2 (Partially Cancelled)", vectors_J2, show_orb_2, show_vec_2, show_chg_2, show_core_2, beta=0.25, radii=radii_J2, phases=phases_all, colors=colors_J2, names=names_J2)
-    st.plotly_chart(fig_2, use_container_width=True, key="chart_state2")
+    st.plotly_chart(fig_2, use_container_width=True, key="c_s2")
 
 with col3:
     st.subheader("3. Ground State (J=0)")
-    st.write("Spherical. All valence nucleons drop down and move in perfectly opposing orbits.")
     show_core_0 = st.checkbox("Show Core", value=True, key="core0")
     show_orb_0 = st.checkbox("Show Orbits", value=True, key="o0")
     show_vec_0 = st.checkbox("Show Vectors", value=True, key="v0")
     show_chg_0 = st.checkbox("Show Charge Overlay", value=True, key="c0")
     fig_0 = plot_3d_state("J=0 (Spherical)", vectors_J0, show_orb_0, show_vec_0, show_chg_0, show_core_0, beta=0.0, radii=radii_J0, phases=phases_all, colors=colors_J0, names=names_J0)
-    st.plotly_chart(fig_0, use_container_width=True, key="chart_state0")
+    st.plotly_chart(fig_0, use_container_width=True, key="c_s0")
 
 st.divider()
 
 # =====================================================================
-# Section 4: Dynamic Transitions & Wave Emissions
+# Section 4: 2D Static Storyboard Transitions
 # =====================================================================
-st.header("4. The Gamma Cascade (Dynamic Transitions)")
+st.header("4. The Gamma Cascade (Static 2D Storyboard)")
 st.write(
-    "Watch the nucleus shed its angular momentum step-by-step. During each 'squish', the equations "
-    "governing the emission will pop up as the E2 wave packet radiates away."
+    "To ensure high performance, the dynamic transitions are shown as 2D structural frames. "
+    "Observe how the nucleus 'squishes' from an oblate shape to a spherical one, radiating a 4-lobed E2 wave packet."
 )
 
-def plot_transition_animation(beta_start, beta_end, title, popup_text):
-    phi = np.linspace(0, 2 * np.pi, 40)
-    theta = np.linspace(0, np.pi, 40)
-    phi, theta = np.meshgrid(phi, theta)
+def plot_static_2d_transition(beta_in, beta_out, wave_type="E2", title="Transition"):
+    fig = make_subplots(rows=1, cols=3, subplot_titles=("Initial Shape", "Emitted Wave", "Final Shape"))
     
-    # E2 Radiation angular dependence (m=±2 mode)
-    angular_intensity = 1 - np.cos(theta)**4
+    t = np.linspace(0, 2*np.pi, 100)
     
-    frames = []
-    num_frames = 45
-    betas = np.linspace(beta_start, beta_end, num_frames)
+    # Initial Shape (Oblate projection: wider in X than Y)
+    x_in = (1 / np.sqrt(1 - beta_in)) * np.cos(t)
+    y_in = (1 - beta_in) * np.sin(t)
+    fig.add_trace(go.Scatter(x=x_in, y=y_in, fill='toself', name='Initial', line_color='blue'), row=1, col=1)
     
-    rz_base = 1.0 * (1 - betas[0])
-    rxy_base = 1.0 / np.sqrt(1 - betas[0])
-    x_nuc = rxy_base * np.sin(theta) * np.cos(phi)
-    y_nuc = rxy_base * np.sin(theta) * np.sin(phi)
-    z_nuc = rz_base * np.cos(theta)
+    # Wave
+    if wave_type == "E2":
+        r_wave = 1 - np.cos(t)**4
+    else:
+        r_wave = np.ones_like(t)
+        
+    x_wave = r_wave * np.cos(t)
+    y_wave = r_wave * np.sin(t)
+    fig.add_trace(go.Scatter(x=x_wave, y=y_wave, fill='toself', name='Wave', line_color='green'), row=1, col=2)
     
-    initial_annotation = [dict(x=0.5, y=0.95, xref="paper", yref="paper", text="", showarrow=False)]
+    # Final Shape
+    x_out = (1 / np.sqrt(1 - beta_out)) * np.cos(t)
+    y_out = (1 - beta_out) * np.sin(t)
+    fig.add_trace(go.Scatter(x=x_out, y=y_out, fill='toself', name='Final', line_color='purple'), row=1, col=3)
     
-    fig = go.Figure(
-        data=[
-            go.Surface(x=x_nuc, y=y_nuc, z=z_nuc, colorscale='Plasma', showscale=False, name="Nucleus"),
-            go.Surface(x=x_nuc*0, y=y_nuc*0, z=z_nuc*0, colorscale='Viridis', opacity=0.5, showscale=False, name="Wave")
-        ],
-        layout=go.Layout(
-            title=title,
-            scene=dict(
-                xaxis=dict(range=[-6, 6], visible=False),
-                yaxis=dict(range=[-6, 6], visible=False),
-                zaxis=dict(range=[-6, 6], visible=False),
-                aspectmode='cube'
-            ),
-            annotations=initial_annotation,
-            height=500,
-            paper_bgcolor="rgba(0,0,0,0)",
-            margin=dict(l=0, r=0, t=40, b=0),
-            updatemenus=[dict(
-                type="buttons", showactive=False, y=0.0, x=0.5, xanchor="center", yanchor="bottom",
-                buttons=[dict(
-                    label=f"▶ Play {title}",
-                    method="animate",
-                    args=[None, dict(frame=dict(duration=60, redraw=True), transition=dict(duration=0), mode='immediate')]
-                )]
-            )]
-        )
+    fig.update_layout(
+        title=title, showlegend=False, height=300,
+        xaxis=dict(range=[-2, 2], visible=False), yaxis=dict(range=[-2, 2], visible=False),
+        xaxis2=dict(range=[-1.2, 1.2], visible=False), yaxis2=dict(range=[-1.2, 1.2], visible=False),
+        xaxis3=dict(range=[-2, 2], visible=False), yaxis3=dict(range=[-2, 2], visible=False),
     )
-    
-    for i in range(num_frames):
-        beta = betas[i]
-        
-        rz = 1.0 * (1 - beta)
-        rxy = 1.0 / np.sqrt(1 - beta)
-        x_n = rxy * np.sin(theta) * np.cos(phi)
-        y_n = rxy * np.sin(theta) * np.sin(phi)
-        z_n = rz * np.cos(theta)
-        
-        if i > 5:
-            wave_radius = 1.0 + ((i-5) * 0.15)
-            wave_amplitude = angular_intensity * wave_radius
-            opacity = max(0, 0.9 - ((i-5) / (num_frames-5)))
-        else:
-            wave_amplitude = 0
-            opacity = 0
-            
-        x_w = wave_amplitude * np.sin(theta) * np.cos(phi)
-        y_w = wave_amplitude * np.sin(theta) * np.sin(phi)
-        z_w = wave_amplitude * np.cos(theta)
-        
-        current_text = popup_text if i > 12 else ""
-        frame_layout = go.Layout(annotations=[dict(
-            x=0.5, y=0.95, xref="paper", yref="paper", 
-            text=current_text, showarrow=False, 
-            font=dict(size=14, color="yellow", family="monospace"),
-            bgcolor="rgba(0,0,0,0.6)", bordercolor="yellow", borderwidth=2, borderpad=4
-        )])
-        
-        frames.append(go.Frame(
-            data=[
-                go.Surface(x=x_n, y=y_n, z=z_n),
-                go.Surface(x=x_w, y=y_w, z=z_w, opacity=opacity)
-            ],
-            layout=frame_layout,
-            name=str(i)
-        ))
-        
-    fig.frames = frames
     return fig
 
-col4_a, col4_b = st.columns(2)
-
-with col4_a:
+col4a, col4b = st.columns(2)
+with col4a:
     st.subheader("Emission 1: J=4 → J=2")
-    st.write("The nucleus sheds its first wave packet to reach the intermediate state.")
-    popup_1 = ("<b>γ₁ = 1173 keV</b><br>"
-               "ΔJ = 2 ⟶ L = 2 (E2)<br>"
-               "W(θ) ∝ 1 - cos⁴(θ) <i>(for single oriented m-state)</i>")
-    fig_em1 = plot_transition_animation(0.5, 0.25, "First Emission", popup_1)
-    st.plotly_chart(fig_em1, use_container_width=True, key="chart_em1_anim")
+    st.markdown(r"**$\gamma_1 = 1173$ keV** | $\Delta J = 2 \rightarrow L = 2$ (E2)")
+    st.plotly_chart(plot_static_2d_transition(0.5, 0.25, "E2", "First Emission"), use_container_width=True, key="p_em1")
 
-with col4_b:
+with col4b:
     st.subheader("Emission 2: J=2 → J=0")
-    st.write("The intermediate state sheds its remaining momentum to reach the ground state.")
-    popup_2 = ("<b>γ₂ = 1333 keV</b><br>"
-               "ΔJ = 2 ⟶ L = 2 (E2)<br>"
-               "W(θ) ∝ 1 - cos⁴(θ) <i>(for single oriented m-state)</i>")
-    fig_em2 = plot_transition_animation(0.25, 0.0, "Second Emission", popup_2)
-    st.plotly_chart(fig_em2, use_container_width=True, key="chart_em2_anim")
+    st.markdown(r"**$\gamma_2 = 1333$ keV** | $\Delta J = 2 \rightarrow$ strictly $L = 2$ (E2)")
+    st.plotly_chart(plot_static_2d_transition(0.25, 0.0, "E2", "Second Emission"), use_container_width=True, key="p_em2")
 
 st.divider()
 
 # =====================================================================
-# Section 5: Angular Correlation - The Macroscopic Average
+# Section 5: The Mathematical Derivation of W(theta)
 # =====================================================================
-st.header("5. From Single Nuclei to Angular Correlation")
+st.header("5. Step-by-Step: Deriving the Angular Correlation Function")
 st.write(
-    "The animations above show what happens to a **single, perfectly oriented nucleus**. "
-    "However, in a real experiment, you have a block of Co-60 material with trillions of nuclei pointing in random directions. "
-    "How do we get from random orientations to the famous $W(\\theta)$ correlation function?"
+    "How do we get from a single substate radiation pattern (like $1-\cos^4\\theta$) to the macroscopic, "
+    "averaged angular correlation function $W(\\theta)$ observed in the laboratory? It requires four rigorous mathematical steps "
+    "using Clebsch-Gordan algebra."
 )
 
-step1, step2, step3 = st.columns(3)
-
-with step1:
-    st.subheader("Step 1: The Unpolarized Source")
-    st.write(
-        "Initially, the J=4 nuclei are oriented randomly. If you only use one detector to measure the first gamma ray, "
-        "you will see a perfectly **isotropic (spherical) distribution**. The random orientations average out all the 4-lobed E2 patterns into a sphere."
-    )
-    
-with step2:
-    st.subheader("Step 2: Tagging the Axis")
-    st.write(
-        "The magic happens when you place a detector. By detecting the first gamma at a specific angle, you "
-        "**select a specific sub-population** of nuclei. The direction of this first gamma becomes the quantum z-axis for the system. "
-        "Because it is an E2 photon, it unequally populates the magnetic substates (m) of the intermediate J=2 level."
-    )
-
-with step3:
-    st.subheader("Step 3: The Aligned Intermediate State")
-    st.write(
-        "The intermediate J=2 state is no longer random; it is **aligned** relative to the first detector. "
-        "When the second photon is emitted from this aligned state, its radiation pattern is locked to that z-axis. "
-        "The second detector measures the second gamma at an angle θ relative to the first."
-    )
-    
-
-st.write("---")
-st.subheader("Step 4: The Mathematical Average (Clebsch-Gordan Algebra)")
+st.subheader("Step 1: Defining the Quantization Axis")
 st.write(
-    "To find the final probability function $W(\\theta)$, quantum mechanics requires us to sum over all possible, unobserved magnetic "
-    "substates weighted by their transition probabilities (Clebsch-Gordan coefficients). For a 4(E2)2(E2)0 cascade, "
-    "the theoretical physics sum simplifies into a series of Legendre polynomials:"
+    "Initially, the $J_i=4$ nuclei in the sample are unpolarized (randomly oriented). "
+    "When the first detector records $\\gamma_1$, we mathematically define the flight path of $\\gamma_1$ as the $z$-axis ($z=0$). "
+    "Because photons are spin-1 bosons traveling at the speed of light, they can only carry helicity $m_\\gamma = \\pm 1$ along their direction of motion."
 )
 
-st.markdown(r"$$W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)$$")
-
+st.subheader("Step 2: Calculating Substate Populations $P(m)$")
 st.write(
-    "When we plug in the specific constants for this cascade ($A_2 = 0.102$ and $A_4 = 0.0091$), the theoretical "
-    "angular correlation function reduces to:"
+    "The first emission ($J_i=4 \\xrightarrow{\\gamma_1} J=2$) populates the magnetic substates ($m$) of the intermediate state. "
+    "We calculate the population $P(m)$ by summing over all unpolarized initial states $m_i$ using the Clebsch-Gordan (CG) coefficients "
+    "for angular momentum addition ($|J, m\\rangle$):"
+)
+st.latex(r"P(m) \propto \sum_{m_i=-4}^{4} |\langle J_i, m_i \ | \ J, m ; L_1, m_\gamma \rangle|^2")
+st.write(
+    "By plugging in $J_i=4$, $J=2$, $L_1=2$ (E2 photon), and restricting $m_\\gamma = \\pm 1$ (from Step 1), the math heavily favors specific substates. "
+    "The resulting populations $P(m)$ for the intermediate $J=2$ state are not equal; the state is now **aligned**."
 )
 
-st.markdown(r"$$W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta$$")
+st.subheader("Step 3: Radiation Patterns of the Substates $W_m(\\theta)$")
+st.write(
+    "Now, the aligned $J=2$ intermediate state decays to the $J_f=0$ ground state by emitting $\\gamma_2$. "
+    "The angular distribution $W_m(\\theta)$ of $\\gamma_2$ depends entirely on which substate $m$ it originated from. "
+    "For an $L_2=2$ (E2) transition to a $J=0$ state, the radiation patterns are derived from Vector Spherical Harmonics:"
+)
+st.latex(r"W_{m=0}(\theta) \propto \sin^2\theta \cos^2\theta")
+st.latex(r"W_{m=\pm 1}(\theta) \propto \cos^2\theta + \cos^2(2\theta)")
+st.latex(r"W_{m=\pm 2}(\theta) \propto 1 - \cos^4\theta")
+st.write(
+    "*(Notice that your intuitive $1 - \cos^4\\theta$ pattern is specifically the emission profile from the $m=\\pm 2$ substates!)*"
+)
+
+st.subheader("Step 4: The Weighted Macroscopic Average")
+st.write(
+    "The final detector measures the average of all these patterns, weighted by the populations $P(m)$ calculated in Step 2. "
+    "Mathematically, this is the dot product:"
+)
+st.latex(r"W(\theta) = \sum_{m=-2}^{2} P(m) W_m(\theta)")
+st.write(
+    "When nuclear physicists execute this summation (often simplified using Racah or Wigner 6-j symbols), the highly directional individual patterns "
+    "smooth out into a combination of even Legendre polynomials $P_k(\\cos\\theta)$:"
+)
+st.latex(r"W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)")
+st.write(
+    "For our specific $4(E2)2(E2)0$ cascade, the theoretical constants are exactly $A_2 = 0.102$ and $A_4 = 0.0091$. Expanding the Legendre polynomials gives the final observable equation:"
+)
+st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
 
 def plot_final_correlation():
     theta_deg = np.linspace(0, 360, 721)
     theta_rad = np.deg2rad(theta_deg)
-
-    # Calculate W(theta)
     W = 1 + (1 / 8.0) * (np.cos(theta_rad) ** 2) + (1 / 24.0) * (np.cos(theta_rad) ** 4)
-    W = W / np.max(W) # Normalize for plotting
+    W = W / np.max(W) 
 
     fig = go.Figure()
-
     fig.add_trace(go.Scatterpolar(
-        r=W,
-        theta=theta_deg,
-        mode="lines",
-        line=dict(color="gold", width=4),
-        fill="toself",
-        fillcolor="rgba(255,215,0,0.30)",
-        name="W(θ)"
+        r=W, theta=theta_deg, mode="lines", line=dict(color="gold", width=4),
+        fill="toself", fillcolor="rgba(255,215,0,0.30)"
     ))
-
     fig.update_layout(
         title="Final Macroscopic Angular Correlation W(θ)",
         polar=dict(
             radialaxis=dict(visible=False, range=[0, 1.05]),
             angularaxis=dict(direction="counterclockwise", rotation=0),
         ),
-        height=400,
-        paper_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=10, r=10, t=50, b=10),
-        showlegend=False
+        height=400, paper_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=50, b=10)
     )
     return fig
 
-st.plotly_chart(plot_final_correlation(), use_container_width=True, key="chart_final_correlation")
+st.plotly_chart(plot_final_correlation(), use_container_width=True, key="p_final")
 st.write(
-    "Notice how this final, averaged macroscopic probability pattern is smoother and less extreme than the deep 4-lobed pattern of a single, "
-    "perfectly oriented substate! The experimental detectors will record a maximum coincidence rate at 180° and 0°, and a minimum at 90°."
+    "By mathematically averaging over all configurations, the deep crevices of the single $1 - \cos^4\\theta$ pattern are smoothed out, "
+    "leaving the gentle, observable " "peanut" " shape of the macroscopic $W(\\theta)$ correlation."
 )
