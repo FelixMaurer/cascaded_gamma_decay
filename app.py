@@ -340,3 +340,221 @@ with col4_b:
     fig_em2 = plot_transition_animation(0.25, 0.0, "Second Emission", popup_2)
     st.plotly_chart(fig_em2, use_container_width=True, key="em2")
           
+st.divider()
+
+# =====================================================================
+# Section 4: Dynamic Transitions & Wave Emissions
+# =====================================================================
+st.header("4. The Gamma Cascade (Dynamic Transitions)")
+st.write(
+    "Watch the nucleus shed its angular momentum step-by-step. During each 'squish', the equations "
+    "governing the emission will pop up as the E2 wave packet radiates away."
+)
+
+def plot_transition_animation(beta_start, beta_end, title, popup_text):
+    phi = np.linspace(0, 2 * np.pi, 40)
+    theta = np.linspace(0, np.pi, 40)
+    phi, theta = np.meshgrid(phi, theta)
+    
+    # E2 Radiation angular dependence (m=±2 mode)
+    angular_intensity = 1 - np.cos(theta)**4
+    
+    frames = []
+    num_frames = 45
+    betas = np.linspace(beta_start, beta_end, num_frames)
+    
+    rz_base = 1.0 * (1 - betas[0])
+    rxy_base = 1.0 / np.sqrt(1 - betas[0])
+    x_nuc = rxy_base * np.sin(theta) * np.cos(phi)
+    y_nuc = rxy_base * np.sin(theta) * np.sin(phi)
+    z_nuc = rz_base * np.cos(theta)
+    
+    # Initial empty annotation
+    initial_annotation = [dict(x=0.5, y=0.95, xref="paper", yref="paper", text="", showarrow=False)]
+    
+    fig = go.Figure(
+        data=[
+            go.Surface(x=x_nuc, y=y_nuc, z=z_nuc, colorscale='Plasma', showscale=False, name="Nucleus"),
+            go.Surface(x=x_nuc*0, y=y_nuc*0, z=z_nuc*0, colorscale='Viridis', opacity=0.5, showscale=False, name="Wave")
+        ],
+        layout=go.Layout(
+            title=title,
+            scene=dict(
+                xaxis=dict(range=[-6, 6], visible=False),
+                yaxis=dict(range=[-6, 6], visible=False),
+                zaxis=dict(range=[-6, 6], visible=False),
+                aspectmode='cube'
+            ),
+            annotations=initial_annotation,
+            height=500,
+            paper_bgcolor="rgba(0,0,0,0)",
+            margin=dict(l=0, r=0, t=40, b=0),
+            updatemenus=[dict(
+                type="buttons", showactive=False, y=0.0, x=0.5, xanchor="center", yanchor="bottom",
+                buttons=[dict(
+                    label=f"▶ Play {title}",
+                    method="animate",
+                    args=[None, dict(frame=dict(duration=60, redraw=True), transition=dict(duration=0), mode='immediate')]
+                )]
+            )]
+        )
+    )
+    
+    for i in range(num_frames):
+        beta = betas[i]
+        
+        rz = 1.0 * (1 - beta)
+        rxy = 1.0 / np.sqrt(1 - beta)
+        x_n = rxy * np.sin(theta) * np.cos(phi)
+        y_n = rxy * np.sin(theta) * np.sin(phi)
+        z_n = rz * np.cos(theta)
+        
+        if i > 5:
+            wave_radius = 1.0 + ((i-5) * 0.15)
+            wave_amplitude = angular_intensity * wave_radius
+            opacity = max(0, 0.9 - ((i-5) / (num_frames-5)))
+        else:
+            wave_amplitude = 0
+            opacity = 0
+            
+        x_w = wave_amplitude * np.sin(theta) * np.cos(phi)
+        y_w = wave_amplitude * np.sin(theta) * np.sin(phi)
+        z_w = wave_amplitude * np.cos(theta)
+        
+        # Trigger popup text halfway through
+        current_text = popup_text if i > 12 else ""
+        frame_layout = go.Layout(annotations=[dict(
+            x=0.5, y=0.95, xref="paper", yref="paper", 
+            text=current_text, showarrow=False, 
+            font=dict(size=14, color="yellow", family="monospace"),
+            bgcolor="rgba(0,0,0,0.6)", bordercolor="yellow", borderwidth=2, borderpad=4
+        )])
+        
+        frames.append(go.Frame(
+            data=[
+                go.Surface(x=x_n, y=y_n, z=z_n),
+                go.Surface(x=x_w, y=y_w, z=z_w, opacity=opacity)
+            ],
+            layout=frame_layout,
+            name=str(i)
+        ))
+        
+    fig.frames = frames
+    return fig
+
+col4_a, col4_b = st.columns(2)
+
+with col4_a:
+    st.subheader("Emission 1: J=4 → J=2")
+    st.write("The nucleus sheds its first wave packet to reach the intermediate state.")
+    # Added Angular Distribution Equation to Popup
+    popup_1 = ("<b>γ₁ = 1173 keV</b><br>"
+               "ΔJ = 2 ⟶ L = 2 (E2)<br>"
+               "W(θ) ∝ 1 - cos⁴(θ) <i>(for single oriented m-state)</i>")
+    fig_em1 = plot_transition_animation(0.5, 0.25, "First Emission", popup_1)
+    st.plotly_chart(fig_em1, use_container_width=True, key="em1")
+
+with col4_b:
+    st.subheader("Emission 2: J=2 → J=0")
+    st.write("The intermediate state sheds its remaining momentum to reach the ground state.")
+    # Added Angular Distribution Equation to Popup
+    popup_2 = ("<b>γ₂ = 1333 keV</b><br>"
+               "ΔJ = 2 ⟶ L = 2 (E2)<br>"
+               "W(θ) ∝ 1 - cos⁴(θ) <i>(for single oriented m-state)</i>")
+    fig_em2 = plot_transition_animation(0.25, 0.0, "Second Emission", popup_2)
+    st.plotly_chart(fig_em2, use_container_width=True, key="em2")
+
+st.divider()
+
+# =====================================================================
+# Section 5: Angular Correlation - The Macroscopic Average
+# =====================================================================
+st.header("5. From Single Nuclei to Angular Correlation")
+st.write(
+    "The animations above show what happens to a **single, perfectly oriented nucleus**. "
+    "However, in a real experiment, you have a block of Co-60 material with trillions of nuclei pointing in random directions. "
+    "How do we get from random orientations to the famous $W(\\theta)$ correlation function?"
+)
+
+
+
+step1, step2, step3 = st.columns(3)
+
+with step1:
+    st.subheader("Step 1: The Unpolarized Source")
+    st.write(
+        "Initially, the $J=4$ nuclei are oriented randomly. If you only use one detector to measure the first gamma ray ($\\gamma_1$), "
+        "you will see a perfectly **isotropic (spherical) distribution**. The random orientations average out all the 4-lobed E2 patterns into a sphere."
+    )
+    
+with step2:
+    st.subheader("Step 2: Tagging the Axis")
+    st.write(
+        "The magic happens when you place a detector. By detecting $\\gamma_1$ at a specific angle, you "
+        "**select a specific sub-population** of nuclei. The direction of $\\gamma_1$ becomes the quantum $z$-axis for the system. "
+        "Because $\\gamma_1$ is an E2 photon, it unequally populates the magnetic substates ($m$) of the intermediate $J=2$ level."
+    )
+
+with step3:
+    st.subheader("Step 3: The Aligned Intermediate State")
+    st.write(
+        "The intermediate $J=2$ state is no longer random; it is **aligned** relative to the $\\gamma_1$ detector. "
+        "When the second photon ($\\gamma_2$) is emitted from this aligned state, its radiation pattern is locked to that $z$-axis. "
+        "The second detector measures $\\gamma_2$ at an angle $\\theta$ relative to the first."
+    )
+
+st.write("---")
+st.subheader("Step 4: The Mathematical Average (Clebsch-Gordan Algebra)")
+st.write(
+    "To find the final probability function $W(\\theta)$, quantum mechanics requires us to sum over all possible, unobserved magnetic "
+    "substates ($m_i, m_f$) weighted by their transition probabilities (Clebsch-Gordan coefficients). For a $4(E2)2(E2)0$ cascade, "
+    "the theoretical physics sum simplifies into a series of Legendre polynomials:"
+)
+
+st.latex(r"W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)")
+
+st.write(
+    "When we plug in the specific constants for this cascade ($A_2 = 0.102$ and $A_4 = 0.0091$), the theoretical "
+    "angular correlation function reduces to:"
+)
+
+st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
+
+def plot_final_correlation():
+    theta_deg = np.linspace(0, 360, 721)
+    theta_rad = np.deg2rad(theta_deg)
+
+    # Calculate W(theta)
+    W = 1 + (1 / 8.0) * (np.cos(theta_rad) ** 2) + (1 / 24.0) * (np.cos(theta_rad) ** 4)
+    W = W / np.max(W) # Normalize for plotting
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatterpolar(
+        r=W,
+        theta=theta_deg,
+        mode="lines",
+        line=dict(color="gold", width=4),
+        fill="toself",
+        fillcolor="rgba(255,215,0,0.30)",
+        name="W(θ)"
+    ))
+
+    fig.update_layout(
+        title="Final Macroscopic Angular Correlation W(θ)",
+        polar=dict(
+            radialaxis=dict(visible=False, range=[0, 1.05]),
+            angularaxis=dict(direction="counterclockwise", rotation=0),
+        ),
+        height=400,
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=10, r=10, t=50, b=10),
+        showlegend=False
+    )
+    return fig
+
+st.plotly_chart(plot_final_correlation(), use_container_width=True)
+st.write(
+    "Notice how this final, averaged macroscopic probability pattern is smoother and less extreme than the deep 4-lobed pattern of a single, "
+    "perfectly oriented substate! The experimental detectors will record a maximum coincidence rate at $180^\circ$ and $0^\circ$, and a minimum at $90^\circ$."
+)
