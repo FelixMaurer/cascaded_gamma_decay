@@ -1150,4 +1150,109 @@ st.write(
     "This stretching and compressing of the charge distribution—without shifting its center—is the exact physical definition "
     "of a changing electric quadrupole moment. That changing shape is what acts as the 'antenna' to broadcast the E2 photon!"
 )
+st.divider()
 
+# =====================================================================
+# SECTION 6
+# =====================================================================
+st.header("6. Animation: The Changing Nuclear Antenna")
+st.write(
+    "To truly visualize why this is an E2 (quadrupole) transition, we can look at the changing shape "
+    "of the nucleus. When the nucleus drops from the J = 4 state to the J = 2 state, its overall charge "
+    "distribution becomes less stretched."
+)
+
+st.info(
+    """
+    **How to use this animation:**
+    Click the **Play** button below the 3D plot to watch the nucleus transition from a deformed, rugby-ball 
+    shape (prolate) to a more spherical shape. 
+    
+    This exact 'squishing' motion of the positive protons creates a changing electric quadrupole moment in space, 
+    which acts as the antenna to broadcast the E2 photon!
+    """
+)
+
+def plot_quadrupole_animation():
+    # Create a base grid for the sphere/ellipsoid
+    phi = np.linspace(0, 2 * np.pi, 50)
+    theta = np.linspace(0, np.pi, 50)
+    phi, theta = np.meshgrid(phi, theta)
+    
+    frames = []
+    # Deformation parameter (beta) goes from 0.4 (stretched) down to 0.0 (spherical)
+    betas = np.linspace(0.4, 0.0, 30)
+    
+    # Calculate the initial surface (beta = 0.4)
+    beta0 = betas[0]
+    # To conserve volume roughly, if z stretches by (1+beta), x and y shrink by sqrt(1+beta)
+    rz0 = 1.0 * (1 + beta0)
+    rx0 = 1.0 / np.sqrt(1 + beta0)
+    
+    x0 = rx0 * np.sin(theta) * np.cos(phi)
+    y0 = rx0 * np.sin(theta) * np.sin(phi)
+    z0 = rz0 * np.cos(theta)
+    
+    fig = go.Figure(
+        data=[go.Surface(x=x0, y=y0, z=z0, colorscale='Plasma', showscale=False)],
+        layout=go.Layout(
+            title="Nuclear Shape Transition: Deformed to Spherical",
+            scene=dict(
+                xaxis=dict(range=[-1.5, 1.5], visible=False),
+                yaxis=dict(range=[-1.5, 1.5], visible=False),
+                zaxis=dict(range=[-1.5, 1.5], visible=False),
+                aspectmode='cube'
+            ),
+            height=500,
+            paper_bgcolor="rgba(0,0,0,0)",
+            margin=dict(l=0, r=0, t=40, b=0),
+            updatemenus=[dict(
+                type="buttons",
+                showactive=False,
+                y=0,
+                x=0.5,
+                xanchor="center",
+                yanchor="top",
+                buttons=[dict(
+                    label="▶ Play Transition",
+                    method="animate",
+                    args=[None, dict(frame=dict(duration=80, redraw=True), 
+                                     transition=dict(duration=0),
+                                     fromcurrent=True,
+                                     mode='immediate')]
+                )]
+            )]
+        )
+    )
+    
+    # Generate the frames for the animation
+    for i, beta in enumerate(betas):
+        rz = 1.0 * (1 + beta)
+        rx = 1.0 / np.sqrt(1 + beta)
+        
+        x = rx * np.sin(theta) * np.cos(phi)
+        y = rx * np.sin(theta) * np.sin(phi)
+        z = rz * np.cos(theta)
+        
+        frames.append(go.Frame(data=[go.Surface(x=x, y=y, z=z)], name=str(i)))
+        
+    fig.frames = frames
+    return fig
+
+col6_a, col6_b = st.columns([2, 1])
+
+with col6_a:
+    st.plotly_chart(plot_quadrupole_animation(), use_container_width=True, key="quad_anim")
+
+with col6_b:
+    st.write("### The Radiated Wave")
+    st.write(
+        "As the nucleus changes shape in the animation, the changing electric field ripples outward. "
+        "Because the motion is symmetric (the top and bottom squish in together, and the equator bulges out), "
+        "the resulting photon wave has a distinct four-lobed 'quadrupole' pattern rather than a simple 'up-down' dipole pattern."
+    )
+    st.write(
+        "This complex wave geometry is exactly what allows the photon to carry away the 2 units of angular "
+        "momentum required by the J = 4 to J = 2 transition rules."
+    )
+    
