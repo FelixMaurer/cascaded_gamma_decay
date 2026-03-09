@@ -1418,3 +1418,175 @@ fig_vectors = go.Figure(
 )
 st.plotly_chart(fig_vectors, use_container_width=True, key="anim_vectors")
     
+st.divider()
+
+# =====================================================================
+# SECTION 10
+# =====================================================================
+st.header("10. Deep Dive Animation: Orbital Alignment vs. Shape")
+st.write(
+    "To fully grasp why the $J=4$ state is 'more stretched' than the $J=0$ state, we "
+    "must visually look at how individual nucleon orbits align or cancel out."
+)
+
+st.info(
+    """
+    **Interpretation Note: The Classical Cartoon**
+    
+    Quantum mechanics tells us nucleons don't have fixed orbits like planets. However, to build intuition "without more math," we can use a classical analogy. 
+    
+    Think of individual nucleons moving in circular paths. The mass and positive charge of the nucleon "pile up" along that path. 
+    * **The total angular momentum vector ($j$)** is perpendicular to that orbital plane. 
+    * **Total J** is the sum of these vectors.
+    """
+)
+
+def plot_orbital_alignment_animation(state="J=4"):
+    phi = np.linspace(0, 2*np.pi, 50)
+    theta_dots = np.linspace(0, 2*np.pi, 40) # Animation steps
+    
+    fig = go.Figure()
+    
+    # Static elements (central core)
+    fig.add_trace(go.Scatter3d(x=[0], y=[0], z=[0], mode="markers", marker=dict(size=12, color="gray"), showlegend=False))
+
+    colors = ["cyan", "lime", "orange", "magenta"]
+    frames = []
+
+    # Define the orbital planes based on state
+    if state == "J=4 (Aligned)":
+        # The 4 vectors align around the Z-axis. Classically, the orbits all 
+        # lie roughly in the equatorial (XY) plane.
+        
+        # Tilt matrices (small variations to show distinct orbits clumping)
+        planes_angles = [
+            (0, 0),    # Plane 1: purely XY
+            (10, 5),   # Plane 2: slightly tilted
+            (-10, -5), # Plane 3: tilted opposite
+            (5, -10)   # Plane 4: tilted slightly
+        ]
+        text_explanation = (
+            "**J=4 (Stretched):** The individual angular momentum vectors align near the Z-axis. "
+            "To achieve this, the nucleon orbital planes must all 'clump' together around the "
+            "equator (XY plane). This piling up of mass creates a collective bulge or 'stretched' disk shape."
+        )
+
+    else: # J=0
+        # The 4 vectors pair up and cancel perfectly. J=0 is inherently spherical.
+        # Classically, two pair in the XY plane, two pair perpendicularly in the XZ plane.
+        
+        # Tilt matrices for cancellation (perpendicular coupling)
+        planes_angles = [
+            (0, 0),     # Orbit 1: XY plane
+            (180, 0),   # Orbit 2: XY plane (opposite rotation)
+            (90, 0),    # Orbit 3: XZ plane
+            (90, 180)   # Orbit 4: XZ plane (opposite rotation)
+        ]
+        text_explanation = (
+            "**J=0 (Spherical):** The individual angular momentum vectors pair up in opposite directions, "
+            "cancelling each other perfectly. Classically, this looks like nucleon orbits crossing "
+            "perpendicularly or randomly. Over time, the movement averages out equally in all directions, resulting in a sphere."
+        )
+
+    # Helper to rotate points in 3D
+    def rotate_point(p, alpha_deg, beta_deg):
+        alpha, beta = np.deg2rad(alpha_deg), np.deg2rad(beta_deg)
+        # Rotation around Y (tilt)
+        Ry = np.array([[np.cos(alpha), 0, np.sin(alpha)], [0, 1, 0], [-np.sin(alpha), 0, np.cos(alpha)]])
+        # Rotation around Z (orientation)
+        Rz = np.array([[np.cos(beta), -np.sin(beta), 0], [np.sin(beta), np.cos(beta), 0], [0, 0, 1]])
+        return Rz @ (Ry @ p)
+
+    # Create static "rings" showing the paths
+    for i, (alpha, beta) in enumerate(planes_angles):
+        radius = 1.0
+        # Base circular path
+        x_base = radius * np.cos(phi)
+        y_base = radius * np.sin(phi)
+        z_base = np.zeros_like(phi)
+        
+        rotated_path = [rotate_point(np.array([x, y, z]), alpha, beta) for x, y, z in zip(x_base, y_base, z_base)]
+        xr = [p[0] for p in rotated_path]
+        yr = [p[1] for p in rotated_path]
+        zr = [p[2] for p in rotated_path]
+        
+        fig.add_trace(go.Scatter3d(x=xr, y=yr, z=zr, mode="lines", line=dict(color=colors[i], width=3, dash='dash'), showlegend=False, opacity=0.4))
+        
+    # Animate 4 dots moving along these paths
+    for t_idx in range(len(theta_dots)):
+        frame_data = [
+            # Keep central core static
+            go.Scatter3d(x=[0], y=[0], z=[0], mode="markers", marker=dict(size=12, color="gray"))
+        ]
+        
+        # Add the rings again for the frame
+        for i, (alpha, beta) in enumerate(planes_angles):
+            radius = 1.0
+            x_base = radius * np.cos(phi)
+            y_base = radius * np.sin(phi)
+            z_base = np.zeros_like(phi)
+            rotated_path = [rotate_point(np.array([x, y, z]), alpha, beta) for x, y, z in zip(x_base, y_base, z_base)]
+            xr, yr, zr = [p[0] for p in rotated_path], [p[1] for p in rotated_path], [p[2] for p in rotated_path]
+            frame_data.append(go.Scatter3d(x=xr, y=yr, z=zr, mode="lines", line=dict(color=colors[i], width=3, dash='dash'), opacity=0.4))
+
+        # Add the moving dots
+        for i, (alpha, beta) in enumerate(planes_angles):
+            # Calculate dot position at time t_idx
+            # Add offset to dots to prevent overlaps initially
+            current_theta = theta_dots[t_idx] + (i * np.pi/2) 
+            radius = 1.0
+            
+            p_base = np.array([radius * np.cos(current_theta), radius * np.sin(current_theta), 0])
+            pr = rotate_point(p_base, alpha, beta)
+            
+            # Use 'effective vector' mnemonic color consistency if possible
+            # Here let's stick to distinctive colors for clarity
+            dot_color = colors[i] 
+
+            frame_data.append(go.Scatter3d(x=[pr[0]], y=[pr[1]], z=[pr[2]], mode="markers", marker=dict(size=10, color=dot_color)))
+            
+        frames.append(go.Frame(data=frame_data, name=str(t_idx)))
+
+    # Use first frame data for initial plot
+    for data in frames[0].data[1:]: # Skip static core added earlier
+        fig.add_trace(data)
+    
+    fig.frames = frames
+
+    fig.update_layout(
+        title=dict(text=f"Cartoon of Orbiting Alignment for {state}", x=0.5),
+        scene=dict(
+            aspectmode="cube",
+            xaxis=dict(range=[-1.5, 1.5], visible=False),
+            yaxis=dict(range=[-1.5, 1.5], visible=False),
+            zaxis=dict(range=[-1.5, 1.5], visible=False),
+        ),
+        height=450,
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=0, t=50, b=0),
+        showlegend=False,
+        updatemenus=[dict(
+            type="buttons", showactive=False, y=0.05, x=0.5, xanchor="center", yanchor="bottom",
+            buttons=[dict(label=f"▶ Animate {state} Orbits", method="animate", args=[None, dict(frame=dict(duration=80, redraw=True), transition=dict(duration=0), mode='immediate')])]
+        )]
+    )
+    return fig, text_explanation
+
+col10_a, col10_b = st.columns(2)
+
+with col10_a:
+    fig_j4, text_j4 = plot_orbital_alignment_animation(state="J=4 (Aligned)")
+    st.plotly_chart(fig_j4, use_container_width=True, key="anim_j4_orbits")
+    st.markdown(text_j4)
+
+with col10_b:
+    fig_j0, text_j0 = plot_orbital_alignment_animation(state="J=0 (Cancelled)")
+    st.plotly_chart(fig_j0, use_container_width=True, key="anim_j0_orbits")
+    st.markdown(text_j0)
+
+st.write(
+    "By comparing the animations, you can visually see that the aligned movement "
+    "of the J=4 state 'carves out' a flat, stretched disk shape in space, "
+    "while the crossing movements of the J=0 state 'carve out' a sphere."
+        )
+            
