@@ -2,315 +2,298 @@ import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Ni-60 Spin Cascades", layout="wide")
+st.set_page_config(page_title="Ni-60 Spin Cascades (3D)", layout="wide")
 
-st.title("Ni-60 Excited States: Intuitive Valence-Coupling Cartoon")
+st.title("Ni-60 Excited States: 3D Interactive Valence Coupling")
 st.write(
-    "A simplified visual explanation of the 4→2→0 gamma-gamma cascade in "
-    "Ni-60 using shell occupancies and angular-momentum coupling cartoons."
+    "A unified 3D visual explanation of the 4→2→0 gamma-gamma cascade in "
+    "Ni-60. Use the interactive viewers to rotate the nucleus and toggle "
+    "different physical layers (orbits, vectors, and charge distributions)."
 )
 
 st.info(
     """
     **Important interpretation note**
 
-    This app uses **pedagogical cartoons** to build intuition. The figures are **not literal pictures**
-    of the nucleus.
-
-    - The circular shell drawings show **occupancy patterns**, not nucleons moving on fixed circular orbits.
-    - The 3D arrows show **angular-momentum coupling cartoons**, not literal spin directions in space.
-    - The configurations shown are **example basis configurations** that can contribute to the real state.
-    - The actual nuclear states are **quantum superpositions of several configurations**, not a single unique arrangement.
+    This app uses **pedagogical cartoons** to build intuition. They are **not literal pictures** of the nucleus.
+    - **Orbits:** Nucleons don't move on fixed classical rings, but it is a helpful proxy for angular momentum planes.
+    - **Vectors:** Show the addition of angular momentum, not literal arrows in space.
+    - **Charge Distribution:** Represents the smeared-out probability cloud of the valence nucleons.
     """
 )
 
-st.warning(
-    """
-    **What to take away**
+st.divider()
 
-    The main message is that the low-lying Ni-60 states can be understood intuitively as arising mainly from
-    the coupling of valence-space nucleons outside an approximate inert core. The visualizations are meant
-    to explain **how total angular momentum can add up to 4, 2, and 0**, not to claim a unique microscopic snapshot.
-    """
-)
-
-# -------------------------------------------------------------------
-# Helper: 2D shell schematic
-# -------------------------------------------------------------------
-def plot_single_nucleus_first_gamma(mode="m=+2"):
-    theta_deg = np.linspace(0, 360, 721)
-    theta = np.deg2rad(theta_deg)
-    c = np.cos(theta)
-    s = np.sin(theta)
-
-    if mode == "m=0":
-        W = (c**2) * (s**2)
-        title = "Single oriented nucleus: E2 component m = 0"
-        note = "zero on axis and in the equatorial plane"
-    elif mode in ["m=+1", "m=-1"]:
-        W = 1 - 3*c**2 + 4*c**4
-        title = f"Single oriented nucleus: E2 component {mode}"
-        note = "weaker at intermediate angles"
+# =====================================================================
+# Helper Functions for 3D Geometry
+# =====================================================================
+def get_orthogonal_vectors(v):
+    """Find two orthogonal unit vectors to a given normal vector."""
+    v = np.array(v) / np.linalg.norm(v)
+    if abs(v[0]) < 0.9:
+        u1 = np.array([1, 0, 0])
     else:
-        W = 1 - c**4
-        title = "Single oriented nucleus: E2 component m = +2"
-        note = "zero along the quantization axis, strongest near the equator"
+        u1 = np.array([0, 1, 0])
+    u1 = u1 - np.dot(u1, v) * v
+    u1 = u1 / np.linalg.norm(u1)
+    u2 = np.cross(v, u1)
+    return u1, u2
 
-    W = W / np.max(W)
+def get_orbit_points(normal, radius=1.5, points=50):
+    """Generate 3D coordinates for a circular orbit."""
+    u1, u2 = get_orthogonal_vectors(normal)
+    theta = np.linspace(0, 2 * np.pi, points)
+    orbit = np.array([radius * np.cos(t) * u1 + radius * np.sin(t) * u2 for t in theta])
+    return orbit[:, 0], orbit[:, 1], orbit[:, 2]
 
+def get_ellipsoid(beta, radius=1.8, points=40):
+    """Generate 3D coordinates for a charge distribution ellipsoid."""
+    phi = np.linspace(0, 2 * np.pi, points)
+    theta = np.linspace(0, np.pi, points)
+    phi, theta = np.meshgrid(phi, theta)
+    
+    # Volume-conserving deformation:
+    rz = radius * (1 + beta)
+    rxy = radius / np.sqrt(1 + beta)
+    
+    x = rxy * np.sin(theta) * np.cos(phi)
+    y = rxy * np.sin(theta) * np.sin(phi)
+    z = rz * np.cos(theta)
+    return x, y, z
+
+# =====================================================================
+# Main 3D Plotting Function
+# =====================================================================
+def plot_3d_state(state_name, vectors, show_orbits, show_vectors, show_charge, beta, colors):
     fig = go.Figure()
+    
+    # 1. Central Core (always visible)
+    xc, yc, zc = get_ellipsoid(0, radius=0.8, points=20)
+    fig.add_trace(go.Surface(x=xc, y=yc, z=zc, colorscale='Greys', showscale=False, opacity=1.0, name="Core"))
 
-    fig.add_trace(go.Scatterpolar(
-        r=W,
-        theta=theta_deg,
-        mode="lines",
-        line=dict(color="gold", width=4),
-        fill="toself",
-        fillcolor="rgba(255,215,0,0.30)",
-        showlegend=False
-    ))
+    total_j = np.zeros(3)
+
+    for i, v in enumerate(vectors):
+        v = np.array(v)
+        total_j += v
+        
+        # 2. Orbits
+        if show_orbits:
+            ox, oy, oz = get_orbit_points(v)
+            fig.add_trace(go.Scatter3d(
+                x=ox, y=oy, z=oz, mode='lines', 
+                line=dict(color=colors[i], width=4, dash='dash'), 
+                name=f"Orbit {i+1}"
+            ))
+            # Nucleon dot
+            fig.add_trace(go.Scatter3d(
+                x=[ox[0]], y=[oy[0]], z=[oz[0]], mode='markers',
+                marker=dict(color=colors[i], size=8), showlegend=False
+            ))
+            
+        # 3. Individual Vectors
+        if show_vectors:
+            fig.add_trace(go.Scatter3d(
+                x=[0, v[0]], y=[0, v[1]], z=[0, v[2]], mode='lines',
+                line=dict(color=colors[i], width=6), name=f"j {i+1}"
+            ))
+            fig.add_trace(go.Cone(
+                x=[v[0]], y=[v[1]], z=[v[2]], u=[v[0]], v=[v[1]], w=[v[2]],
+                sizemode="absolute", sizeref=0.3, anchor="tip", colorscale=[[0, colors[i]], [1, colors[i]]], showscale=False
+            ))
+
+    # 4. Total Vector
+    if show_vectors and np.linalg.norm(total_j) > 0.1:
+        fig.add_trace(go.Scatter3d(
+            x=[0, total_j[0]], y=[0, total_j[1]], z=[0, total_j[2]], mode='lines',
+            line=dict(color='yellow', width=10), name=f"Total J={round(np.linalg.norm(total_j))}"
+        ))
+        fig.add_trace(go.Cone(
+            x=[total_j[0]], y=[total_j[1]], z=[total_j[2]], 
+            u=[total_j[0]], v=[total_j[1]], w=[total_j[2]],
+            sizemode="absolute", sizeref=0.6, anchor="tip", colorscale=[[0, 'yellow'], [1, 'yellow']], showscale=False
+        ))
+
+    # 5. Charge Distribution Overlay
+    if show_charge:
+        ex, ey, ez = get_ellipsoid(beta)
+        fig.add_trace(go.Surface(
+            x=ex, y=ey, z=ez, colorscale='Blues', opacity=0.3, showscale=False, name="Charge Dist."
+        ))
 
     fig.update_layout(
-        title=title,
-        polar=dict(
-            radialaxis=dict(visible=False, range=[0, 1.05]),
-            angularaxis=dict(direction="counterclockwise", rotation=90)
+        title=f"State: {state_name}",
+        scene=dict(
+            xaxis=dict(range=[-4, 4], visible=False),
+            yaxis=dict(range=[-4, 4], visible=False),
+            zaxis=dict(range=[-4, 4], visible=False),
+            aspectmode='cube'
         ),
-        height=400,
+        height=500,
+        margin=dict(l=0, r=0, b=0, t=40),
         paper_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=10, r=10, t=50, b=70),
-        annotations=[
-            dict(
-                text=note + "<br>z-axis = quantization axis",
-                x=0.5, y=0.02, xref="paper", yref="paper",
-                showarrow=False, font=dict(size=11), align="center"
-            )
-        ],
         showlegend=False
     )
     return fig
-def draw_2d_shell(title_text, num_in=3, num_out=1):
-    fig_shell = go.Figure()
 
-    # Core
-    fig_shell.add_shape(
-        type="circle", x0=-2, y0=-2, x1=2, y1=2,
-        fillcolor="lightgray", line_color="black"
+# =====================================================================
+# State Configurations
+# =====================================================================
+colors = ["cyan", "lime", "magenta", "orange"]
+
+# J=4: Vectors aligned upward. 
+vectors_J4 = [
+    [0.3, 0, 1.0], 
+    [-0.3, 0, 1.0], 
+    [0, 0.3, 1.0], 
+    [0, -0.3, 1.0]
+] # Sums close to (0,0,4)
+
+# J=2: Two vectors pair off and cancel, two point slightly up.
+vectors_J2 = [
+    [1.5, 0, 0], 
+    [-1.5, 0, 0], 
+    [0, 0.5, 1.0], 
+    [0, -0.5, 1.0]
+] # Sums close to (0,0,2)
+
+# J=0: All vectors pair off and perfectly cancel.
+vectors_J0 = [
+    [1.5, 0, 0], 
+    [-1.5, 0, 0], 
+    [0, 1.5, 0], 
+    [0, -1.5, 0]
+] # Sums to (0,0,0)
+
+# =====================================================================
+# Sections 1, 2, 3 (Combined 3D Views)
+# =====================================================================
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.subheader("1. Initial State (J=4)")
+    st.write("Stretched configuration. Nucleon orbits align to create a high total angular momentum.")
+    show_orb_4 = st.checkbox("Show Orbits", value=True, key="o4")
+    show_vec_4 = st.checkbox("Show Vectors", value=True, key="v4")
+    show_chg_4 = st.checkbox("Show Charge Overlay", value=True, key="c4")
+    fig_4 = plot_3d_state("J=4 (Aligned)", vectors_J4, show_orb_4, show_vec_4, show_chg_4, beta=0.4, colors=colors)
+    st.plotly_chart(fig_4, use_container_width=True)
+
+with col2:
+    st.subheader("2. Intermediate State (J=2)")
+    st.write("Less stretched. Some orbits begin to cross and cancel out each other's momentum.")
+    show_orb_2 = st.checkbox("Show Orbits", value=True, key="o2")
+    show_vec_2 = st.checkbox("Show Vectors", value=True, key="v2")
+    show_chg_2 = st.checkbox("Show Charge Overlay", value=True, key="c2")
+    fig_2 = plot_3d_state("J=2 (Partially Cancelled)", vectors_J2, show_orb_2, show_vec_2, show_chg_2, beta=0.2, colors=colors)
+    st.plotly_chart(fig_2, use_container_width=True)
+
+with col3:
+    st.subheader("3. Ground State (J=0)")
+    st.write("Spherical. All valence nucleons are paired off, moving in perfectly opposing orbits.")
+    show_orb_0 = st.checkbox("Show Orbits", value=True, key="o0")
+    show_vec_0 = st.checkbox("Show Vectors", value=True, key="v0")
+    show_chg_0 = st.checkbox("Show Charge Overlay", value=True, key="c0")
+    fig_0 = plot_3d_state("J=0 (Spherical)", vectors_J0, show_orb_0, show_vec_0, show_chg_0, beta=0.0, colors=colors)
+    st.plotly_chart(fig_0, use_container_width=True)
+
+st.divider()
+
+# =====================================================================
+# Section 4: Dynamic Transition & Wave Emission
+# =====================================================================
+st.header("4. Dynamic Transition: The 'Squish' and the Wave")
+st.write(
+    "When the nucleus transitions from $J=4$ to $J=2$, it sheds energy and angular momentum. "
+    "Press **Play** below to watch the nucleus dynamically 'squish' from its stretched, aligned "
+    "shape into a more compact shape. This exact reshaping of the charge distribution is what "
+    "creates the outwardly expanding E2 wave packet (the photon) carrying away $2\hbar$ of angular momentum."
+)
+
+def plot_transition_animation():
+    # Grids for the mesh
+    phi = np.linspace(0, 2 * np.pi, 40)
+    theta = np.linspace(0, np.pi, 40)
+    phi, theta = np.meshgrid(phi, theta)
+    
+    # E2 Radiation angular dependence (m=±2 mode)
+    angular_intensity = 1 - np.cos(theta)**4
+    
+    frames = []
+    num_frames = 40
+    
+    # Beta squishes from 0.4 (J=4) down to 0.2 (J=2)
+    betas = np.linspace(0.4, 0.2, num_frames)
+    
+    # Initialize base geometry for the plot
+    rz_base = 1.0 * (1 + betas[0])
+    rxy_base = 1.0 / np.sqrt(1 + betas[0])
+    x_nuc = rxy_base * np.sin(theta) * np.cos(phi)
+    y_nuc = rxy_base * np.sin(theta) * np.sin(phi)
+    z_nuc = rz_base * np.cos(theta)
+    
+    fig = go.Figure(
+        data=[
+            # Nucleus
+            go.Surface(x=x_nuc, y=y_nuc, z=z_nuc, colorscale='Plasma', showscale=False, name="Nucleus"),
+            # Wave (Starts hidden inside nucleus)
+            go.Surface(x=x_nuc*0, y=y_nuc*0, z=z_nuc*0, colorscale='Viridis', opacity=0.5, showscale=False, name="Wave")
+        ],
+        layout=go.Layout(
+            scene=dict(
+                xaxis=dict(range=[-4, 4], visible=False),
+                yaxis=dict(range=[-4, 4], visible=False),
+                zaxis=dict(range=[-4, 4], visible=False),
+                aspectmode='cube'
+            ),
+            height=600,
+            paper_bgcolor="rgba(0,0,0,0)",
+            margin=dict(l=0, r=0, t=0, b=0),
+            updatemenus=[dict(
+                type="buttons", showactive=False, y=0.1, x=0.5, xanchor="center", yanchor="bottom",
+                buttons=[dict(
+                    label="▶ Play Transition & Wave Emission",
+                    method="animate",
+                    args=[None, dict(frame=dict(duration=60, redraw=True), transition=dict(duration=0), mode='immediate')]
+                )]
+            )]
+        )
     )
-    fig_shell.add_annotation(
-        x=0, y=0,
-        text="<b>Stable Core<br>(28p, 28n)<br>Spin = 0</b>",
-        showarrow=False,
-        font=dict(size=14, color="black")
-    )
+    
+    for i in range(num_frames):
+        beta = betas[i]
+        
+        # 1. Update Nucleus Shape
+        rz = 1.0 * (1 + beta)
+        rxy = 1.0 / np.sqrt(1 + beta)
+        x_n = rxy * np.sin(theta) * np.cos(phi)
+        y_n = rxy * np.sin(theta) * np.sin(phi)
+        z_n = rz * np.cos(theta)
+        
+        # 2. Update Wave Expansion
+        wave_radius = 1.0 + (i * 0.15) # Expands outward
+        wave_amplitude = angular_intensity * wave_radius
+        
+        # Fading effect as wave expands
+        opacity = max(0, 1.0 - (i / num_frames))
+        
+        x_w = wave_amplitude * np.sin(theta) * np.cos(phi)
+        y_w = wave_amplitude * np.sin(theta) * np.sin(phi)
+        z_w = wave_amplitude * np.cos(theta)
+        
+        frames.append(go.Frame(
+            data=[
+                go.Surface(x=x_n, y=y_n, z=z_n),
+                go.Surface(x=x_w, y=y_w, z=z_w, opacity=opacity)
+            ],
+            name=str(i)
+        ))
+        
+    fig.frames = frames
+    return fig
 
-    # Valence shells
-    fig_shell.add_shape(
-        type="circle", x0=-3.5, y0=-3.5, x1=3.5, y1=3.5,
-        line=dict(color="cyan", dash="dash")
-    )
-    fig_shell.add_annotation(
-        x=0, y=3.7,
-        text="2p3/2 Orbital",
-        showarrow=False,
-        font=dict(color="cyan", size=14)
-    )
-
-    fig_shell.add_shape(
-        type="circle", x0=-5, y0=-5, x1=5, y1=5,
-        line=dict(color="lime", dash="dash")
-    )
-    fig_shell.add_annotation(
-        x=0, y=5.2,
-        text="1f5/2 Orbital",
-        showarrow=False,
-        font=dict(color="lime", size=14)
-    )
-
-    # Dots indicate occupancy count only, not spatial positions
-    if num_in == 4:
-        theta_in = [np.pi/4, 3*np.pi/4, 5*np.pi/4, 7*np.pi/4]
-    elif num_in == 3:
-        theta_in = [np.pi/4, 3*np.pi/4, 5*np.pi/4]
-    elif num_in == 2:
-        theta_in = [np.pi/4, 3*np.pi/4]
-    else:
-        theta_in = []
-
-    if num_out == 2:
-        theta_out = [5*np.pi/4, 7*np.pi/4]
-    elif num_out == 1:
-        theta_out = [7*np.pi/4]
-    else:
-        theta_out = []
-
-    if len(theta_in) > 0:
-        fig_shell.add_trace(
-            go.Scatter(
-                x=3.5 * np.cos(theta_in),
-                y=3.5 * np.sin(theta_in),
-                mode="markers",
-                marker=dict(size=15, color="cyan"),
-                name=f"{num_in} neutrons in 2p3/2"
-            )
-        )
-    if len(theta_out) > 0:
-        fig_shell.add_trace(
-            go.Scatter(
-                x=5.0 * np.cos(theta_out),
-                y=5.0 * np.sin(theta_out),
-                mode="markers",
-                marker=dict(size=15, color="lime"),
-                name=f"{num_out} neutrons in 1f5/2"
-            )
-        )
-
-    fig_shell.update_layout(
-        title=title_text,
-        xaxis=dict(visible=False, range=[-6, 6]),
-        yaxis=dict(visible=False, range=[-6, 6], scaleanchor="x", scaleratio=1),
-        height=350,
-        showlegend=False,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=0, r=0, t=40, b=0)
-    )
-    return fig_shell
-
-
-# -------------------------------------------------------------------
-# Helper: 3D internal coupling cartoon
-# -------------------------------------------------------------------
-def plot_internal_coupling(title, mode="3_neutrons"):
-    fig_internal = go.Figure()
-
-    if mode == "3_neutrons":
-        # Cartoon only: illustrates how p3/2^3 can be represented
-        # by an effective net j = 3/2 contribution.
-        fig_internal.add_trace(
-            go.Scatter3d(
-                x=[0, 0], y=[0, 0], z=[0, 1.5],
-                mode="lines+markers",
-                name="Example effective component",
-                line=dict(width=6, color="cyan")
-            )
-        )
-        fig_internal.add_trace(
-            go.Scatter3d(
-                x=[0, 1.5], y=[0, 0], z=[0, 0],
-                mode="lines+markers",
-                name="Example paired part",
-                line=dict(width=6, color="magenta")
-            )
-        )
-        fig_internal.add_trace(
-            go.Scatter3d(
-                x=[0, -1.5], y=[0, 0], z=[0, 0],
-                mode="lines+markers",
-                name="Example paired part",
-                line=dict(width=6, color="magenta")
-            )
-        )
-        fig_internal.add_trace(
-            go.Scatter3d(
-                x=[0, 0], y=[0, 0], z=[0, 1.5],
-                mode="lines",
-                name="Net effective j = 1.5",
-                line=dict(dash="dash", color="cyan", width=8)
-            )
-        )
-
-    elif mode == "4_neutrons":
-        # Cartoon only: illustrates pairwise cancellation leading to J = 0
-        fig_internal.add_trace(
-            go.Scatter3d(
-                x=[0, 0], y=[0, 0], z=[0, 1.5],
-                mode="lines+markers",
-                name="Example pair component",
-                line=dict(width=6, color="magenta")
-            )
-        )
-        fig_internal.add_trace(
-            go.Scatter3d(
-                x=[0, 0], y=[0, 0], z=[0, -1.5],
-                mode="lines+markers",
-                name="Example pair component",
-                line=dict(width=6, color="magenta")
-            )
-        )
-        fig_internal.add_trace(
-            go.Scatter3d(
-                x=[0, 1.5], y=[0, 0], z=[0, 0],
-                mode="lines+markers",
-                name="Example pair component",
-                line=dict(width=6, color="magenta")
-            )
-        )
-        fig_internal.add_trace(
-            go.Scatter3d(
-                x=[0, -1.5], y=[0, 0], z=[0, 0],
-                mode="lines+markers",
-                name="Example pair component",
-                line=dict(width=6, color="magenta")
-            )
-        )
-        fig_internal.add_trace(
-            go.Scatter3d(
-                x=[0], y=[0], z=[0],
-                mode="markers",
-                name="Net effective j = 0",
-                marker=dict(size=10, color="cyan")
-            )
-        )
-
-    fig_internal.update_layout(
-        title=title,
-        scene=dict(
-            aspectmode="cube",
-            xaxis_title="X",
-            yaxis_title="Y",
-            zaxis_title="Z",
-            xaxis=dict(range=[-2, 2]),
-            yaxis=dict(range=[-2, 2]),
-            zaxis=dict(range=[-2, 2]),
-        ),
-        height=350,
-        paper_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=0, r=0, t=40, b=0),
-        legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
-    )
-    return fig_internal
-
-
-# -------------------------------------------------------------------
-# Helper: 3D vector coupling with arrowhead
-# -------------------------------------------------------------------
-def plot_3d_vectors(v1, v2, target_mag, title):
-    fig = go.Figure()
-
-    if v1 == 0 and v2 == 0:
-        fig.add_trace(
-            go.Scatter3d(
-                x=[0], y=[0], z=[0],
-                mode="markers",
-                name=f"Total J = {target_mag}",
-                marker=dict(size=12, color="yellow")
-            )
-        )
-        fig.add_trace(
-            go.Scatter3d(
-                x=[0, 0], y=[0, 0], z=[0, 0],
-                mode="lines",
-                name="Vector A",
-                line=dict(width=0, color="cyan")
-            )
-        )
-        fig.add_trace(
-            go.Scatter3d(
-                x=[0, 0], y=[0, 0], z=[0, 0],
-                mode="lines",
-                name="Vector B",
-                line=dict(width=0, color="lime")
+st.plotly_chart(plot_transition_animation(), use_container_width=True, key="anim_squish_wave")
+ict(width=0, color="lime")
             )
         )
     else:
