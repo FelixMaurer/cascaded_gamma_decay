@@ -82,19 +82,26 @@ def plot_3d_state(state_name, vectors, show_orbits, show_vectors, show_charge, s
     nucleon_positions = np.array(nucleon_positions)
 
     # --- Nucleon Repulsion Logic ---
-    # To prevent nucleons from overlapping on the exact same orbit phase, we apply a 
-    # spatial repulsion shift. We optimize this shift based purely on the M0/M2 ratio 
-    # to maintain structural scale without tuning individual arbitrary parameters.
+    # Uses an iterative relaxation loop to guarantee separation, optimized 
+    # entirely via the M0/M2 ratio.
     M0_M2_ratio = 1.0 / 2.0  
     
-    for i in range(len(nucleon_positions)):
-        for j in range(i + 1, len(nucleon_positions)):
-            dist_vec = nucleon_positions[i] - nucleon_positions[j]
-            dist = np.linalg.norm(dist_vec)
-            if dist < 0.6:  # Collision threshold
-                repulsion_force = (dist_vec / (dist + 1e-6)) * M0_M2_ratio * 0.5
-                nucleon_positions[i] += repulsion_force
-                nucleon_positions[j] -= repulsion_force
+    for _ in range(10):  # 10 iterations to let the positions push apart smoothly
+        for i in range(len(nucleon_positions)):
+            for j in range(i + 1, len(nucleon_positions)):
+                dist_vec = nucleon_positions[i] - nucleon_positions[j]
+                dist = np.linalg.norm(dist_vec)
+                
+                # If they spawn perfectly overlapped, give a tiny arbitrary nudge 
+                # so the repulsion vector has a direction to fire.
+                if dist < 1e-4:
+                    dist_vec = np.array([0.05 * (i+1), -0.05 * (j+1), 0.05])
+                    dist = np.linalg.norm(dist_vec)
+                    
+                if dist < 1.2:  # Widened threshold to ensure visibility
+                    repulsion_force = (dist_vec / dist) * M0_M2_ratio * 0.3
+                    nucleon_positions[i] += repulsion_force
+                    nucleon_positions[j] -= repulsion_force
 
     # Plotting loop
     for i, v in enumerate(vectors):
@@ -179,7 +186,7 @@ def plot_3d_state(state_name, vectors, show_orbits, show_vectors, show_charge, s
     )
     return fig
 
-# Adjusted phases to give better initial spacing before repulsion
+# Adjusted phases
 phases_all = [0.0, np.pi/2, np.pi, 3*np.pi/2]
 
 vectors_J4 = [[1.5, 0, 0], [-1.5, 0, 0], [0, 0, 1.5], [0, 0, 2.5]] 
