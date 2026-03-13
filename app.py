@@ -43,9 +43,7 @@ def get_orbit_points(normal, radius, phase=0.0, points=60):
     u1, u2 = get_orthogonal_vectors(normal)
     theta = np.linspace(phase, 2 * np.pi + phase, points)
     orbit = np.array([radius * np.cos(t) * u1 + radius * np.sin(t) * u2 for t in theta])
-    tangent_dir = -np.sin(phase) * u1 + np.cos(phase) * u2
-    tangent_dir = tangent_dir / np.linalg.norm(tangent_dir)
-    return orbit[:, 0], orbit[:, 1], orbit[:, 2], tangent_dir
+    return orbit[:, 0], orbit[:, 1], orbit[:, 2], theta, u1, u2
 
 def get_ellipsoid(beta, radius=1.8, points=40):
     phi = np.linspace(0, 2 * np.pi, points)
@@ -73,6 +71,32 @@ def plot_3d_state(state_name, vectors, show_orbits, show_vectors, show_charge, s
     added_p32 = False
     added_f52 = False
 
+    # Extract initial nucleon positions for repulsion calculation
+    nucleon_positions = []
+    orbit_data = []
+    for i, v in enumerate(vectors):
+        ox, oy, oz, theta_arr, u1, u2 = get_orbit_points(v, radius=radii[i], phase=phases[i])
+        nucleon_positions.append(np.array([ox[0], oy[0], oz[0]]))
+        orbit_data.append((ox, oy, oz, theta_arr, u1, u2))
+
+    nucleon_positions = np.array(nucleon_positions)
+
+    # --- Nucleon Repulsion Logic ---
+    # To prevent nucleons from overlapping on the exact same orbit phase, we apply a 
+    # spatial repulsion shift. We optimize this shift based purely on the M0/M2 ratio 
+    # to maintain structural scale without tuning individual arbitrary parameters.
+    M0_M2_ratio = 1.0 / 2.0  
+    
+    for i in range(len(nucleon_positions)):
+        for j in range(i + 1, len(nucleon_positions)):
+            dist_vec = nucleon_positions[i] - nucleon_positions[j]
+            dist = np.linalg.norm(dist_vec)
+            if dist < 0.6:  # Collision threshold
+                repulsion_force = (dist_vec / (dist + 1e-6)) * M0_M2_ratio * 0.5
+                nucleon_positions[i] += repulsion_force
+                nucleon_positions[j] -= repulsion_force
+
+    # Plotting loop
     for i, v in enumerate(vectors):
         v = np.array(v)
         total_j += v
@@ -85,47 +109,57 @@ def plot_3d_state(state_name, vectors, show_orbits, show_vectors, show_charge, s
             added_f52 = True
             
         legend_group = names[i]
+        ox, oy, oz, theta_arr, u1, u2 = orbit_data[i]
 
         if show_orbits:
-            ox, oy, oz, tangent = get_orbit_points(v, radius=radii[i], phase=phases[i])
+            # Orbit Path
             fig.add_trace(go.Scatter3d(
                 x=ox, y=oy, z=oz, mode='lines', 
-                line=dict(color=colors[i], width=4, dash='dash'), 
+                line=dict(color=colors[i], width=3, dash='dash'), 
                 name=f"{names[i]} orbit", legendgroup=legend_group, showlegend=show_in_legend
             ))
+            
+            # Repelled Nucleon Marker
             fig.add_trace(go.Scatter3d(
-                x=[ox[0]], y=[oy[0]], z=[oz[0]], mode='markers',
-                marker=dict(color=colors[i], size=8), legendgroup=legend_group, showlegend=False, hoverinfo="skip"
+                x=[nucleon_positions[i][0]], y=[nucleon_positions[i][1]], z=[nucleon_positions[i][2]], mode='markers',
+                marker=dict(color=colors[i], size=8, line=dict(color='white', width=1)), 
+                legendgroup=legend_group, showlegend=False, hoverinfo="skip"
             ))
-            fig.add_trace(go.Cone(
-                x=[ox[0]], y=[oy[0]], z=[oz[0]],
-                u=[tangent[0]], v=[tangent[1]], w=[tangent[2]],
-                sizemode="absolute", sizeref=0.6, anchor="center",
-                colorscale=[[0, colors[i]], [1, colors[i]]], showscale=False, hoverinfo="skip", showlegend=False
-            ))
+            
+            # Multiple small directional arrows along the orbit
+            arrow_indices = [15, 30, 45]
+            for idx in arrow_indices:
+                t_dir = -np.sin(theta_arr[idx]) * u1 + np.cos(theta_arr[idx]) * u2
+                t_dir = t_dir / np.linalg.norm(t_dir)
+                fig.add_trace(go.Cone(
+                    x=[ox[idx]], y=[oy[idx]], z=[oz[idx]],
+                    u=[t_dir[0]], v=[t_dir[1]], w=[t_dir[2]],
+                    sizemode="absolute", sizeref=0.25, anchor="tail",
+                    colorscale=[[0, colors[i]], [1, colors[i]]], showscale=False, hoverinfo="skip", showlegend=False
+                ))
             
         if show_vectors:
             vx, vy, vz = v * vector_scale
             fig.add_trace(go.Scatter3d(
                 x=[0, vx], y=[0, vy], z=[0, vz], mode='lines',
-                line=dict(color=colors[i], width=6), name=f"j ({names[i]} = {np.linalg.norm(v):.1f})",
+                line=dict(color=colors[i], width=5), name=f"j ({names[i]} = {np.linalg.norm(v):.1f})",
                 legendgroup=legend_group, showlegend=False
             ))
             fig.add_trace(go.Cone(
                 x=[vx], y=[vy], z=[vz], u=[vx], v=[vy], w=[vz],
-                sizemode="absolute", sizeref=0.4, anchor="tip", colorscale=[[0, colors[i]], [1, colors[i]]], showscale=False
+                sizemode="absolute", sizeref=0.3, anchor="tip", colorscale=[[0, colors[i]], [1, colors[i]]], showscale=False
             ))
 
     if show_vectors and np.linalg.norm(total_j) > 0.1:
         tj_scaled = total_j * vector_scale
         fig.add_trace(go.Scatter3d(
             x=[0, tj_scaled[0]], y=[0, tj_scaled[1]], z=[0, tj_scaled[2]], mode='lines',
-            line=dict(color='yellow', width=10), name=f"Total J={round(np.linalg.norm(total_j))}"
+            line=dict(color='yellow', width=8), name=f"Total J={round(np.linalg.norm(total_j))}"
         ))
         fig.add_trace(go.Cone(
             x=[tj_scaled[0]], y=[tj_scaled[1]], z=[tj_scaled[2]], 
             u=[tj_scaled[0]], v=[tj_scaled[1]], w=[tj_scaled[2]],
-            sizemode="absolute", sizeref=0.8, anchor="tip", colorscale=[[0, 'yellow'], [1, 'yellow']], showscale=False
+            sizemode="absolute", sizeref=0.6, anchor="tip", colorscale=[[0, 'yellow'], [1, 'yellow']], showscale=False
         ))
 
     if show_charge:
@@ -135,9 +169,9 @@ def plot_3d_state(state_name, vectors, show_orbits, show_vectors, show_charge, s
     fig.update_layout(
         title=f"State: {state_name}",
         scene=dict(
-            xaxis=dict(range=[-6, 6], visible=False),
-            yaxis=dict(range=[-6, 6], visible=False),
-            zaxis=dict(range=[-6, 6], visible=False), 
+            xaxis=dict(range=[-5, 5], visible=False),
+            yaxis=dict(range=[-5, 5], visible=False),
+            zaxis=dict(range=[-5, 5], visible=False), 
             aspectmode='cube'
         ),
         height=500, margin=dict(l=0, r=0, b=0, t=40), paper_bgcolor="rgba(0,0,0,0)",
@@ -145,6 +179,7 @@ def plot_3d_state(state_name, vectors, show_orbits, show_vectors, show_charge, s
     )
     return fig
 
+# Adjusted phases to give better initial spacing before repulsion
 phases_all = [0.0, np.pi/2, np.pi, 3*np.pi/2]
 
 vectors_J4 = [[1.5, 0, 0], [-1.5, 0, 0], [0, 0, 1.5], [0, 0, 2.5]] 
@@ -194,57 +229,64 @@ with col3:
 st.divider()
 
 # =====================================================================
-# Section 4: 2D Static Storyboard Transitions
+# Section 4: Charge Distribution & EM Waves
 # =====================================================================
-st.header("4. The Gamma Cascade (Static 2D Storyboard)")
+st.header("4. Charge Distribution & Emission Waves")
 st.write(
-    "To ensure high performance, the dynamic transitions are shown as 2D structural frames. "
-    "Observe how the nucleus 'squishes' from an oblate shape to a spherical one, radiating a 4-lobed E2 wave packet."
+    "Visualizing how the stretched nucleus radiates energy as it squeezes back into a spherical shape. "
+    "Observe the specific angular lobes of the emitted photons."
 )
 
-def plot_static_2d_transition(beta_in, beta_out, wave_type="E2", title="Transition"):
-    fig = make_subplots(rows=1, cols=3, subplot_titles=("Initial Shape", "Emitted Wave", "Final Shape"))
+def plot_emission_pattern(beta, wave_type="E2", title="Transition"):
+    fig = go.Figure()
     
-    t = np.linspace(0, 2*np.pi, 100)
+    t = np.linspace(0, 2*np.pi, 200)
     
-    # Initial Shape (Oblate projection: wider in X than Y)
-    x_in = (1 / np.sqrt(1 - beta_in)) * np.cos(t)
-    y_in = (1 - beta_in) * np.sin(t)
-    fig.add_trace(go.Scatter(x=x_in, y=y_in, fill='toself', name='Initial', line_color='blue'), row=1, col=1)
-    
-    # Wave
+    # Emitting Wave Lines (Angular Dependency)
     if wave_type == "E2":
-        r_wave = 1 - np.cos(t)**4
-    else:
-        r_wave = np.ones_like(t)
-        
-    x_wave = r_wave * np.cos(t)
-    y_wave = r_wave * np.sin(t)
-    fig.add_trace(go.Scatter(x=x_wave, y=y_wave, fill='toself', name='Wave', line_color='green'), row=1, col=2)
-    
-    # Final Shape
-    x_out = (1 / np.sqrt(1 - beta_out)) * np.cos(t)
-    y_out = (1 - beta_out) * np.sin(t)
-    fig.add_trace(go.Scatter(x=x_out, y=y_out, fill='toself', name='Final', line_color='purple'), row=1, col=3)
-    
+        # Quadrupole (4 Lobes)
+        for scale, opacity in zip([1.5, 2.0, 2.5], [0.8, 0.5, 0.3]):
+            r_wave = scale * np.abs(np.sin(2*t)) + 0.8 # clover pattern
+            fig.add_trace(go.Scatter(x=r_wave*np.cos(t), y=r_wave*np.sin(t), mode='lines', 
+                                     line=dict(color=f'rgba(0, 200, 100, {opacity})', dash='dot', width=2), 
+                                     name='E2 Wave', showlegend=False, hoverinfo="skip"))
+    elif wave_type == "E1":
+        # Dipole (2 Lobes) for comparison
+        for scale, opacity in zip([1.5, 2.0, 2.5], [0.8, 0.5, 0.3]):
+            r_wave = scale * 1.2 * np.abs(np.cos(t)) + 0.8 # figure-8 pattern
+            fig.add_trace(go.Scatter(x=r_wave*np.cos(t), y=r_wave*np.sin(t), mode='lines', 
+                                     line=dict(color=f'rgba(255, 100, 50, {opacity})', dash='dot', width=2), 
+                                     name='E1 Wave', showlegend=False, hoverinfo="skip"))
+
+    # Nucleus Shape (Oblate projection: wider in X than Y)
+    x_in = (1 / np.sqrt(1 - beta)) * np.cos(t)
+    y_in = (1 - beta) * np.sin(t)
+    fig.add_trace(go.Scatter(x=x_in, y=y_in, fill='toself', name='Nucleus', 
+                             line_color='royalblue', fillcolor='rgba(65, 105, 225, 0.7)', hoverinfo="skip"))
+
     fig.update_layout(
-        title=title, showlegend=False, height=300,
-        xaxis=dict(range=[-2, 2], visible=False), yaxis=dict(range=[-2, 2], visible=False),
-        xaxis2=dict(range=[-1.2, 1.2], visible=False), yaxis2=dict(range=[-1.2, 1.2], visible=False),
-        xaxis3=dict(range=[-2, 2], visible=False), yaxis3=dict(range=[-2, 2], visible=False),
+        title=title, showlegend=False, height=400,
+        xaxis=dict(range=[-3, 3], visible=False), 
+        yaxis=dict(range=[-3, 3], visible=False, scaleanchor="x", scaleratio=1),
+        margin=dict(l=10, r=10, b=10, t=40)
     )
     return fig
 
-col4a, col4b = st.columns(2)
+col4a, col4b, col4c = st.columns(3)
 with col4a:
-    st.subheader("Emission 1: J=4 → J=2")
-    st.markdown(r"**$\gamma_1 = 1173$ keV** | $\Delta J = 2 \rightarrow L = 2$ (E2)")
-    st.plotly_chart(plot_static_2d_transition(0.5, 0.25, "E2", "First Emission"), use_container_width=True, key="p_em1")
+    st.subheader("1st Emission: J=4 → J=2")
+    st.markdown("**1173 keV** | $\Delta J = 2 \rightarrow L = 2$ (E2)")
+    st.plotly_chart(plot_emission_pattern(0.4, "E2", "E2 Quadrupole Emission"), use_container_width=True, key="p_em1")
 
 with col4b:
-    st.subheader("Emission 2: J=2 → J=0")
-    st.markdown(r"**$\gamma_2 = 1333$ keV** | $\Delta J = 2 \rightarrow$ strictly $L = 2$ (E2)")
-    st.plotly_chart(plot_static_2d_transition(0.25, 0.0, "E2", "Second Emission"), use_container_width=True, key="p_em2")
+    st.subheader("2nd Emission: J=2 → J=0")
+    st.markdown("**1333 keV** | $\Delta J = 2 \rightarrow$ strictly $L = 2$ (E2)")
+    st.plotly_chart(plot_emission_pattern(0.2, "E2", "E2 Quadrupole Emission"), use_container_width=True, key="p_em2")
+
+with col4c:
+    st.subheader("Comparison Example")
+    st.markdown("Hypothetical | $\Delta J = 1 \rightarrow L = 1$ (E1)")
+    st.plotly_chart(plot_emission_pattern(0.3, "E1", "E1 Dipole Emission"), use_container_width=True, key="p_em3")
 
 st.divider()
 
@@ -265,7 +307,7 @@ st.write(
     "Because photons are spin-1 bosons traveling at the speed of light, they can only carry helicity $m_\\gamma = \\pm 1$ along their direction of motion."
 )
 
-st.subheader("Step 2: Calculating Substate Populations $P(m)$")
+st.subheader("Step 2: Calculating Substate Populations P(m)")
 st.write(
     "The first emission ($J_i=4 \\xrightarrow{\\gamma_1} J=2$) populates the magnetic substates ($m$) of the intermediate state. "
     "We calculate the population $P(m)$ by summing over all unpolarized initial states $m_i$ using the Clebsch-Gordan (CG) coefficients "
@@ -277,7 +319,7 @@ st.write(
     "The resulting populations $P(m)$ for the intermediate $J=2$ state are not equal; the state is now **aligned**."
 )
 
-st.subheader("Step 3: Radiation Patterns of the Substates $W_m(\\theta)$")
+st.subheader("Step 3: Radiation Patterns of the Substates W_m(θ)")
 st.write(
     "Now, the aligned $J=2$ intermediate state decays to the $J_f=0$ ground state by emitting $\\gamma_2$. "
     "The angular distribution $W_m(\\theta)$ of $\\gamma_2$ depends entirely on which substate $m$ it originated from. "
