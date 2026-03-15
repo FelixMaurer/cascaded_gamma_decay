@@ -632,12 +632,23 @@ st.write(
     "*(Notice that your intuitive $1 - \cos^4\\theta$ pattern from the earlier animation is specifically the emission profile from the $m=\\pm 2$ substates!)*"
 )
 
+
 st.subheader("Step 4: The Weighted Macroscopic Average")
 st.write(
-    "The final detector measures the average of all these patterns, weighted by the percentages $P(m)$ "
-    "we calculated in Step 2. Mathematically, this is the dot product:"
+    "By writing out the math, we can see exactly how the deep crevices of the single $1 - \cos^4\theta$ pattern "
+    "are filled in by the other substates, leaving the gentle, observable 'peanut' shape of the macroscopic $W(\theta)$ correlation."
 )
-st.subheader("Step 4: The Explicit Algebraic Summation")
+st.latex(r"W(\theta) = \sum_{m=-2}^{2} P(m) W_m(\theta)")
+st.write(
+    "When nuclear physicists execute this summation, "
+    "the highly directional individual patterns smooth out into a combination of even Legendre polynomials $P_k(\\cos\\theta)$:"
+)
+st.latex(r"W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)")
+st.write(
+    "For our specific $4(E2)2(E2)0$ cascade, the theoretical constants evaluate exactly to $A_2 = 0.102$ and $A_4 = 0.0091$. "
+    "Expanding the Legendre polynomials gives the final observable equation:"
+)
+st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
 st.write(
     "The final detector measures the average of all these patterns, weighted by the percentages $P(m)$ "
     "we calculated in Step 2. Mathematically, this is the dot product:"
@@ -687,21 +698,7 @@ def plot_final_correlation():
     return fig
 
 st.plotly_chart(plot_final_correlation(), use_container_width=True, key="p_final")
-st.write(
-    "By writing out the math, we can see exactly how the deep crevices of the single $1 - \cos^4\theta$ pattern "
-    "are filled in by the other substates, leaving the gentle, observable 'peanut' shape of the macroscopic $W(\theta)$ correlation."
-)
-st.latex(r"W(\theta) = \sum_{m=-2}^{2} P(m) W_m(\theta)")
-st.write(
-    "When nuclear physicists execute this summation, "
-    "the highly directional individual patterns smooth out into a combination of even Legendre polynomials $P_k(\\cos\\theta)$:"
-)
-st.latex(r"W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)")
-st.write(
-    "For our specific $4(E2)2(E2)0$ cascade, the theoretical constants evaluate exactly to $A_2 = 0.102$ and $A_4 = 0.0091$. "
-    "Expanding the Legendre polynomials gives the final observable equation:"
-)
-st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
+
 
 def plot_final_correlation():
     theta_deg = np.linspace(0, 360, 721)
