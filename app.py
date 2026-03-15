@@ -365,34 +365,99 @@ with st.expander("💡 Wait, neutrons are neutral! Why does the charge distribut
 # =====================================================================
 st.header("5. Step-by-Step: Deriving the Angular Correlation Function")
 st.write(
-    "How do we get from a single substate radiation pattern (like $1-\cos^4\\theta$) to the macroscopic, "
-    "averaged angular correlation function $W(\\theta)$ observed in the laboratory? It requires four rigorous mathematical steps "
-    "using Clebsch-Gordan algebra."
+    "The leap from a single substate radiation pattern to the macroscopic "
+    "angular correlation function $W(\\theta)$ observed in the laboratory can feel abstract. "
+    "Let's break down the four mathematical steps required to get there."
 )
 
 st.subheader("Step 1: Defining the Quantization Axis")
 st.write(
-    "Initially, the $J_i=4$ nuclei in the sample are unpolarized (randomly oriented). "
-    "When the first detector records $\\gamma_1$, we mathematically define the flight path of $\\gamma_1$ as the $z$-axis ($z=0$). "
-    "Because photons are spin-1 bosons traveling at the speed of light, they can only carry helicity $m_\\gamma = \\pm 1$ along their direction of motion."
+    "Initially, the $J_i=4$ nuclei in your sample are unpolarized (oriented randomly in all directions). "
+    "We have no reference frame. However, the moment the first detector records $\\gamma_1$, "
+    "we mathematically define the flight path of that specific photon as our $z$-axis ($z=0$)."
 )
 
-st.subheader("Step 2: Calculating Substate Populations P(m)")
+def plot_quantization_axis():
+    fig = go.Figure()
+    
+    # Randomly oriented nuclear spins (faded)
+    np.random.seed(42)
+    for _ in range(5):
+        u = np.random.uniform(-1, 1, 3)
+        u = u / np.linalg.norm(u)
+        fig.add_trace(go.Scatter3d(
+            x=[0, u[0]*2], y=[0, u[1]*2], z=[0, u[2]*2], mode='lines',
+            line=dict(color='rgba(100, 150, 255, 0.4)', width=4), showlegend=False, hoverinfo="skip"
+        ))
+
+    # Nucleus
+    fig.add_trace(go.Scatter3d(
+        x=[0], y=[0], z=[0], mode='markers',
+        marker=dict(size=15, color='royalblue', line=dict(color='white', width=2)),
+        name="Nucleus"
+    ))
+    
+    # Gamma 1 defining the Z-axis
+    fig.add_trace(go.Scatter3d(
+        x=[0, 0], y=[0, 0], z=[0, 4], mode='lines',
+        line=dict(color='yellow', width=6, dash='dot'), name="γ₁ Flight Path (z-axis)"
+    ))
+    fig.add_trace(go.Cone(
+        x=[0], y=[0], z=[4], u=[0], v=[0], w=[2],
+        sizemode="absolute", sizeref=0.5, anchor="tail",
+        colorscale=[[0, 'yellow'], [1, 'yellow']], showscale=False, hoverinfo="skip"
+    ))
+
+    # X and Y reference axes
+    fig.add_trace(go.Scatter3d(x=[0, 3], y=[0, 0], z=[0, 0], mode='lines', line=dict(color='gray', width=2), name="x-axis"))
+    fig.add_trace(go.Scatter3d(x=[0, 0], y=[0, 3], z=[0, 0], mode='lines', line=dict(color='gray', width=2), name="y-axis"))
+
+    fig.update_layout(
+        title="Detector 1 defines the Coordinate System",
+        scene=dict(
+            xaxis=dict(range=[-4, 4], showbackground=False, visible=False),
+            yaxis=dict(range=[-4, 4], showbackground=False, visible=False),
+            zaxis=dict(range=[-4, 4], showbackground=False, visible=False),
+            aspectmode='cube'
+        ),
+        height=400, margin=dict(l=0, r=0, b=0, t=40), paper_bgcolor="rgba(0,0,0,0)",
+        legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
+    )
+    return fig
+
+st.plotly_chart(plot_quantization_axis(), use_container_width=True, key="p_axis")
+
 st.write(
-    "The first emission ($J_i=4 \\xrightarrow{\\gamma_1} J=2$) populates the magnetic substates ($m$) of the intermediate state. "
-    "We calculate the population $P(m)$ by summing over all unpolarized initial states $m_i$ using the Clebsch-Gordan (CG) coefficients "
-    "for angular momentum addition ($|J, m\\rangle$):"
+    "Because photons are spin-1 bosons traveling at the speed of light, they can only carry "
+    "angular momentum (helicity) of $m_\\gamma = \\pm 1$ along their direction of motion. "
+    "This restriction forces the nucleus into specific alignments relative to this new $z$-axis."
+)
+
+st.subheader("Step 2: Substate Populations P(m) & Clebsch-Gordan Coefficients")
+st.write(
+    "What is a substate population $P(m)$? Intuitively, the magnetic substate $m$ represents the "
+    "**tilt** or projection of the total nuclear spin along our newly defined $z$-axis. "
+    "$P(m)$ is simply the percentage of nuclei in our sample that end up with that specific tilt "
+    "after emitting the first photon."
+)
+st.write(
+    "To find these percentages, we use **Clebsch-Gordan (CG) coefficients**. Think of these as "
+    "the mathematical rules for 3D quantum geometry. Because angular momentum must be strictly conserved "
+    "during the emission ($J_{initial} = J_{final} + L_{photon}$), the CG coefficients calculate the exact "
+    "probability amplitude that specific initial and final tilts can geometrically snap together. "
+    "Squaring this amplitude gives us the physical probability $P(m)$:"
 )
 st.latex(r"P(m) \propto \sum_{m_i=-4}^{4} |\langle J_i, m_i \ | \ J, m ; L_1, m_\gamma \rangle|^2")
 st.write(
-    "By plugging in $J_i=4$, $J=2$, $L_1=2$ (E2 photon), and restricting $m_\\gamma = \\pm 1$ (from Step 1), the math heavily favors specific substates. "
-    "The resulting populations $P(m)$ for the intermediate $J=2$ state are not equal; the state is now **aligned**."
+    "By plugging in $J_i=4$, $J=2$, $L_1=2$ (E2 photon), and restricting the photon's spin projection to "
+    "$m_\\gamma = \\pm 1$ (from Step 1), the geometry heavily favors specific final tilts. "
+    "The resulting populations $P(m)$ for the intermediate $J=2$ state are not equal; the nuclear ensemble is now **aligned**."
 )
 
 st.subheader("Step 3: Radiation Patterns of the Substates W_m(θ)")
 st.write(
     "Now, the aligned $J=2$ intermediate state decays to the $J_f=0$ ground state by emitting $\\gamma_2$. "
-    "The angular distribution $W_m(\\theta)$ of $\\gamma_2$ depends entirely on which substate $m$ it originated from. "
+    "The angular distribution $W_m(\\theta)$ of $\\gamma_2$ depends entirely on the tilt ($m$) it originated from. "
     "For an $L_2=2$ (E2) transition to a $J=0$ state, the radiation patterns are derived from Vector Spherical Harmonics:"
 )
 st.latex(r"W_{m=0}(\theta) \propto \sin^2\theta \cos^2\theta")
@@ -404,17 +469,18 @@ st.write(
 
 st.subheader("Step 4: The Weighted Macroscopic Average")
 st.write(
-    "The final detector measures the average of all these patterns, weighted by the populations $P(m)$ calculated in Step 2. "
-    "Mathematically, this is the dot product:"
+    "The final detector measures the average of all these patterns, weighted by the percentages $P(m)$ "
+    "we calculated in Step 2. Mathematically, this is the dot product:"
 )
 st.latex(r"W(\theta) = \sum_{m=-2}^{2} P(m) W_m(\theta)")
 st.write(
-    "When nuclear physicists execute this summation (often simplified using Racah or Wigner 6-j symbols), the highly directional individual patterns "
-    "smooth out into a combination of even Legendre polynomials $P_k(\\cos\\theta)$:"
+    "When nuclear physicists execute this summation (often simplified using Racah or Wigner 6-j symbols), "
+    "the highly directional individual patterns smooth out into a combination of even Legendre polynomials $P_k(\\cos\\theta)$:"
 )
 st.latex(r"W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)")
 st.write(
-    "For our specific $4(E2)2(E2)0$ cascade, the theoretical constants are exactly $A_2 = 0.102$ and $A_4 = 0.0091$. Expanding the Legendre polynomials gives the final observable equation:"
+    "For our specific $4(E2)2(E2)0$ cascade, the theoretical constants evaluate exactly to $A_2 = 0.102$ and $A_4 = 0.0091$. "
+    "Expanding the Legendre polynomials gives the final observable equation:"
 )
 st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
 
@@ -442,5 +508,5 @@ def plot_final_correlation():
 st.plotly_chart(plot_final_correlation(), use_container_width=True, key="p_final")
 st.write(
     "By mathematically averaging over all configurations, the deep crevices of the single $1 - \cos^4\\theta$ pattern are smoothed out, "
-    "leaving the gentle, observable " "peanut" " shape of the macroscopic $W(\\theta)$ correlation."
+    "leaving the gentle, observable 'peanut' shape of the macroscopic $W(\\theta)$ correlation."
 )
