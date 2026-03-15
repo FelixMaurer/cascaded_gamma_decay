@@ -635,24 +635,12 @@ st.write(
 
 st.subheader("Step 4: The Weighted Macroscopic Average")
 st.write(
-    "By writing out the math, we can see exactly how the deep crevices of the single $1 - \cos^4\theta$ pattern "
-    "are filled in by the other substates, leaving the gentle, observable 'peanut' shape of the macroscopic $W(\theta)$ correlation."
+    "The final detector measures the average of all these patterns, weighted by the percentages $P(m)$ "
+    "we calculated in Step 2. Mathematically, this is the dot product of the populations and their specific radiation patterns:"
 )
 st.latex(r"W(\theta) = \sum_{m=-2}^{2} P(m) W_m(\theta)")
-st.write(
-    "When nuclear physicists execute this summation, "
-    "the highly directional individual patterns smooth out into a combination of even Legendre polynomials $P_k(\\cos\\theta)$:"
-)
-st.latex(r"W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)")
-st.write(
-    "For our specific $4(E2)2(E2)0$ cascade, the theoretical constants evaluate exactly to $A_2 = 0.102$ and $A_4 = 0.0091$. "
-    "Expanding the Legendre polynomials gives the final observable equation:"
-)
-st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
-st.write(
-    "The final detector measures the average of all these patterns, weighted by the percentages $P(m)$ "
-    "we calculated in Step 2. Mathematically, this is the dot product:"
-)
+
+st.write("For our specific $4 \rightarrow 2$ transition, expanding this sum looks like this:")
 st.latex(r"W(\theta) = P(0)W_0(\theta) + 2P(1)W_1(\theta) + 2P(2)W_2(\theta)")
 
 with st.expander("🧮 See the full algebraic derivation"):
@@ -661,16 +649,22 @@ with st.expander("🧮 See the full algebraic derivation"):
     st.latex(r"W_{\pm 1}: \cos^2\theta + \cos^2(2\theta) \xrightarrow{\text{becomes}} 1 - 3\cos^2\theta + 4\cos^4\theta")
     st.latex(r"W_{\pm 2}: 1 - \cos^4\theta \xrightarrow{\text{stays}} 1 - \cos^4\theta")
     
-    st.write("Next, we substitute these into our weighted sum equation. The Clebsch-Gordan coefficients for our $4 \rightarrow 2$ transition dictate the exact population weights $P(m)$. When we plug those specific fractions in, the sum looks like this:")
+    st.write("Next, we substitute these into our weighted sum equation using the specific population weights $P(m)$ calculated by the Clebsch-Gordan coefficients:")
     st.latex(r"W(\theta) \propto \underbrace{c_0(\cos^2\theta - \cos^4\theta)}_{m=0 \text{ contribution}} + \underbrace{c_1(1 - 3\cos^2\theta + 4\cos^4\theta)}_{m=\pm 1 \text{ contribution}} + \underbrace{c_2(1 - \cos^4\theta)}_{m=\pm 2 \text{ contribution}}")
     
-    st.write("Finally, we simply group the terms by their power of $\cos\theta$:")
+    st.write("Finally, we group the terms by their power of $\cos\theta$:")
     st.latex(r"\text{Constant: } c_1 + c_2")
     st.latex(r"\cos^2\theta \text{ terms: } c_0 - 3c_1")
     st.latex(r"\cos^4\theta \text{ terms: } -c_0 + 4c_1 - c_2")
 
 st.write(
-    "When you crunch the exact Clebsch-Gordan fractions for those $c$ constants and normalize the equation, "
+    "When nuclear physicists execute this summation, the highly directional individual patterns "
+    "smooth out into a combination of even Legendre polynomials $P_k(\cos\theta)$:"
+)
+st.latex(r"W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)")
+
+st.write(
+    "When you crunch the exact Clebsch-Gordan fractions for those constants and normalize the equation, "
     "all the messy terms collapse into the beautiful, final observable formula:"
 )
 st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
@@ -697,32 +691,9 @@ def plot_final_correlation():
     )
     return fig
 
-st.plotly_chart(plot_final_correlation(), use_container_width=True, key="p_final")
+st.plotly_chart(plot_final_correlation(), use_container_width=True, key="p_final_fixed")
 
-
-def plot_final_correlation():
-    theta_deg = np.linspace(0, 360, 721)
-    theta_rad = np.deg2rad(theta_deg)
-    W = 1 + (1 / 8.0) * (np.cos(theta_rad) ** 2) + (1 / 24.0) * (np.cos(theta_rad) ** 4)
-    W = W / np.max(W) 
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=W, theta=theta_deg, mode="lines", line=dict(color="gold", width=4),
-        fill="toself", fillcolor="rgba(255,215,0,0.30)"
-    ))
-    fig.update_layout(
-        title="Final Macroscopic Angular Correlation W(θ)",
-        polar=dict(
-            radialaxis=dict(visible=False, range=[0, 1.05]),
-            angularaxis=dict(direction="counterclockwise", rotation=0),
-        ),
-        height=400, paper_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=50, b=10)
-    )
-    return fig
-
-st.plotly_chart(plot_final_correlation(), use_container_width=True, key="p_final")
 st.write(
-    "By mathematically averaging over all configurations, the deep crevices of the single $1 - \cos^4\\theta$ pattern are smoothed out, "
-    "leaving the gentle, observable 'peanut' shape of the macroscopic $W(\\theta)$ correlation."
+    "By writing out the math, we can see exactly how the deep crevices of the single $1 - \cos^4\theta$ pattern "
+    "are filled in by the other substates, leaving the gentle, observable 'peanut' shape of the macroscopic $W(\theta)$ correlation."
 )
