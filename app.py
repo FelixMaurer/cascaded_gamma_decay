@@ -575,29 +575,42 @@ st.write(
 )
 st.latex(r"P(m) \propto \sum_{m_i=-4}^{4} |\langle J_i, m_i \ | \ J, m ; L_1, m_\gamma \rangle|^2")
 
-with st.expander("🧮 Deep Dive: Calculating the Bra-Ket Coefficients"):
+with st.expander("🧮 Deep Dive: Explicit Calculation of All Bra-Ket Coefficients"):
     st.write(
         r"The equation for the population $P(m)$ uses Dirac bra-ket notation: $\langle J_i, m_i \ | \ J, m ; L_1, m_\gamma \rangle$. "
-        r"Here is what that actually calculates:"
+        r"This overlap integral calculates how perfectly the initial coupled state matches the final uncoupled state."
     )
     st.markdown(
         r"""
-        * **The Bra $\langle J_i, m_i |$:** Represents the starting state of the nucleus before it decays (our $J_i=4$ state).
-        * **The Ket $| J, m ; L_1, m_\gamma \rangle$:** Represents the "uncoupled" final state, where the nucleus ($J=2$) and the photon ($L_1=2$) exist as separate entities with their own individual tilts.
-        * **The Overlap Integral:** The entire bracket $\langle \dots | \dots \rangle$ calculates how perfectly these two distinct geometric states match. Squaring it gives the true physical probability.
+        Because our defining $z$-axis restricts the photon's helicity to $m_\gamma = \pm 1$, there are exactly two geometric pathways to reach any final substate $m$. The initial state *must* have been either $m_i = m+1$ or $m_i = m-1$. 
+        
+        Therefore, the total probability for any state $P(m)$ is the sum of those two squared Clebsch-Gordan (CG) coefficients:
         """
     )
-    st.write(r"**Calculating the $m=2$ substate population:**")
-    st.write(r"There are only two ways to land on $m=2$ via our $z$-axis photon ($m_\gamma = \pm 1$). We calculate the squared coefficient for both pathways and add them together:")
-    st.latex(r"\text{Pathway A } (m_\gamma = +1): |\langle 4, 3 \ | \ 2, 2 ; 2, 1 \rangle|^2 = 1/2")
-    st.latex(r"\text{Pathway B } (m_\gamma = -1): |\langle 4, 1 \ | \ 2, 2 ; 2, -1 \rangle|^2 = 1/14")
-    st.latex(r"\text{Total } P(2) \propto \frac{1}{2} + \frac{1}{14} = \frac{4}{7} \equiv \frac{20}{35}")
+    st.latex(r"P(m) \propto \underbrace{|\langle 4, m+1 \ | \ 2, m ; 2, 1 \rangle|^2}_{\text{via } m_\gamma = +1} + \underbrace{|\langle 4, m-1 \ | \ 2, m ; 2, -1 \rangle|^2}_{\text{via } m_\gamma = -1}")
     
-    st.write(r"**Repeating this sum for every substate $m$ yields the exact relative populations:**")
-    st.latex(r"P(\pm 2) \propto \frac{20}{35} \qquad P(\pm 1) \propto \frac{28}{35} \qquad P(0) \propto \frac{30}{35}")
+    st.write(r"By looking up the standard CG coefficients for a $2 \otimes 2 \rightarrow 4$ angular momentum addition, we can calculate the exact probabilities for every possible tilt:")
     
-    st.write(r"To get the final normalized percentages, we divide by the total sum ($126/35$):")
-    st.latex(r"P(\pm 2) = \frac{10}{63} \qquad P(\pm 1) = \frac{14}{63} \qquad P(0) = \frac{15}{63}")
+    st.markdown(r"**1. Calculating the $m=2$ substate:**")
+    st.latex(r"P(2) \propto |\langle 4, 3 \ | \ 2, 2 ; 2, 1 \rangle|^2 + |\langle 4, 1 \ | \ 2, 2 ; 2, -1 \rangle|^2")
+    st.latex(r"P(2) \propto \left(\sqrt{\frac{1}{2}}\right)^2 + \left(\sqrt{\frac{1}{14}}\right)^2 = \frac{7}{14} + \frac{1}{14} = \frac{8}{14} \equiv \mathbf{\frac{20}{35}}")
+
+    st.markdown(r"**2. Calculating the $m=1$ substate:**")
+    st.latex(r"P(1) \propto |\langle 4, 2 \ | \ 2, 1 ; 2, 1 \rangle|^2 + |\langle 4, 0 \ | \ 2, 1 ; 2, -1 \rangle|^2")
+    st.latex(r"P(1) \propto \left(\sqrt{\frac{8}{14}}\right)^2 + \left(\sqrt{\frac{16}{70}}\right)^2 = \frac{40}{70} + \frac{16}{70} = \frac{56}{70} \equiv \mathbf{\frac{28}{35}}")
+
+    st.markdown(r"**3. Calculating the $m=0$ substate:**")
+    st.latex(r"P(0) \propto |\langle 4, 1 \ | \ 2, 0 ; 2, 1 \rangle|^2 + |\langle 4, -1 \ | \ 2, 0 ; 2, -1 \rangle|^2")
+    st.latex(r"P(0) \propto \left(\sqrt{\frac{6}{14}}\right)^2 + \left(\sqrt{\frac{6}{14}}\right)^2 = \frac{30}{70} + \frac{30}{70} = \frac{60}{70} \equiv \mathbf{\frac{30}{35}}")
+
+    st.write(r"*(Because space is symmetric, the negative states $P(-1)$ and $P(-2)$ have the exact same probabilities as their positive counterparts.)*")
+
+    st.markdown(r"**4. Normalizing the final percentages:**")
+    st.write(r"To find the true percentage of the ensemble in each state, we divide by the total sum of all possible outcomes ($P(2) + P(1) + P(0) + P(-1) + P(-2)$):")
+    st.latex(r"\text{Total Sum} = \frac{20 + 28 + 30 + 28 + 20}{35} = \frac{126}{35}")
+    
+    st.write(r"Dividing our individual probabilities by this total gives the final, normalized substate population fractions:")
+    st.latex(r"P(\pm 2) = \mathbf{\frac{10}{63}} \qquad P(\pm 1) = \mathbf{\frac{14}{63}} \qquad P(0) = \mathbf{\frac{15}{63}}")
 
 st.write(
     r"The resulting populations $P(m)$ for the intermediate $J=2$ state are not equal; "
