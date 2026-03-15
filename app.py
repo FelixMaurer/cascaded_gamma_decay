@@ -334,6 +334,35 @@ with col4c:
 
 st.divider()
 
+st.header("4. Animated Emission Waves")
+st.write(
+    "Press **Play** below to watch how the stretched nucleus radiating energy squeezes back into a spherical shape. "
+    "Observe the specific angular lobes of the emitted photons traveling outward."
+)
+
+# --- START DROP-IN EXPLANATION ---
+with st.expander("💡 Wait, neutrons are neutral! Why does the charge distribution change?"):
+    st.write(
+        "It's a great observation: isolated neutrons have an electric charge of exactly 0. "
+        "If only the valence neutrons were moving, there would be no changing electric field, "
+        "and therefore no electric quadrupole (E2) radiation."
+    )
+    st.markdown(
+        """
+        **The secret is Core Polarization:**
+        * **The Core:** Ni-60 consists of a tightly bound, spherical core of 28 protons and 28 neutrons (the doubly-magic Ni-56 core), plus your 4 valence neutrons orbiting on the outside.
+        * **The Strong Force Tug-of-War:** As those 4 valence neutrons settle into an aligned, non-spherical equator (the oblate $J=4$ state), they interact with the core via the strong nuclear force.
+        * **The Charge Follows the Mass:** The valence neutrons physically drag the core protons out of their perfect spherical shape. The core bulges out to follow the neutrons. When the nucleus "squeezes" back into a sphere during the transition, the radiation is actually coming from the **protons in the core** snapping back into place!
+        
+        **The Mathematical Trick: Effective Charge**
+        Because tracking the movement of 28 individual core protons is a mathematical nightmare, nuclear physicists use a trick called **effective charge** ($e_{eff}$). Instead of calculating the core's deformation, they pretend the core stays perfectly spherical and assign a fake electric charge (usually around $+0.5e$) to the valence neutrons. This perfectly accounts for the amount of core-proton-drag they create.
+        """
+    )
+# --- END DROP-IN EXPLANATION ---
+
+def plot_animated_emission(beta_in, beta_out, wave_type="E2", title="Transition"):
+# ... (rest of the function continues here)
+
 # =====================================================================
 # Section 5: The Mathematical Derivation of W(theta)
 # =====================================================================
