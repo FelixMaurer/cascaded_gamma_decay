@@ -451,18 +451,21 @@ def plot_cg_pathways():
     fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'scene'}, {'type': 'scene'}]], 
                         subplot_titles=("Pathway A: m_i=3 → m_f=2", "Pathway B: m_i=1 → m_f=2"))
 
-    def add_vector_addition(fig, row, col, v_f, v_gam, v_i, m_gam_label):
+    def add_vector_addition(fig, row, col, v_f, v_gam, v_i, m_gam_label, show_legend):
         # 1. Final State J_f (starts at origin)
         fig.add_trace(go.Scatter3d(
             x=[0, v_f[0]], y=[0, v_f[1]], z=[0, v_f[2]], mode='lines+markers',
-            line=dict(color='lime', width=6), marker=dict(size=5, color='lime'), name="Final J_f"
+            line=dict(color='lime', width=6), marker=dict(size=5, color='lime'), 
+            name="Final J_f", legendgroup="jf", showlegend=show_legend
         ), row=row, col=col)
         
         # 2. Photon (starts at tip of J_f, goes to tip of J_i to complete the triangle)
         fig.add_trace(go.Scatter3d(
             x=[v_f[0], v_i[0]], y=[v_f[1], v_i[1]], z=[v_f[2], v_i[2]], mode='lines',
-            line=dict(color='yellow', width=5, dash='dash'), name=f"Photon ({m_gam_label})"
+            line=dict(color='yellow', width=5, dash='dash'), 
+            name="Photon (L_γ)", legendgroup="gam", showlegend=show_legend
         ), row=row, col=col)
+        
         # Cone for photon direction
         fig.add_trace(go.Cone(
             x=[v_i[0]], y=[v_i[1]], z=[v_i[2]], u=[v_gam[0]], v=[v_gam[1]], w=[v_gam[2]],
@@ -473,45 +476,47 @@ def plot_cg_pathways():
         # 3. Initial State J_i (starts at origin, forms the resultant vector)
         fig.add_trace(go.Scatter3d(
             x=[0, v_i[0]], y=[0, v_i[1]], z=[0, v_i[2]], mode='lines+markers',
-            line=dict(color='royalblue', width=6), marker=dict(size=5, color='royalblue'), name="Initial J_i"
+            line=dict(color='royalblue', width=6), marker=dict(size=5, color='royalblue'), 
+            name="Initial J_i", legendgroup="ji", showlegend=show_legend
         ), row=row, col=col)
 
         # 4. Projection lines to the Z-axis to prove the math
         fig.add_trace(go.Scatter3d(
             x=[v_i[0], 0], y=[v_i[1], 0], z=[v_i[2], v_i[2]], mode='lines',
-            line=dict(color='royalblue', width=2, dash='dot'), showlegend=False
+            line=dict(color='royalblue', width=2, dash='dot'), showlegend=False, hoverinfo="skip"
         ), row=row, col=col)
         fig.add_trace(go.Scatter3d(
             x=[v_f[0], 0], y=[v_f[1], 0], z=[v_f[2], v_f[2]], mode='lines',
-            line=dict(color='lime', width=2, dash='dot'), showlegend=False
+            line=dict(color='lime', width=2, dash='dot'), showlegend=False, hoverinfo="skip"
         ), row=row, col=col)
         
         # Highlight the z-axis projections with markers
         fig.add_trace(go.Scatter3d(
             x=[0, 0], y=[0, 0], z=[v_i[2], v_f[2]], mode='markers',
-            marker=dict(color=['royalblue', 'lime'], size=6), showlegend=False
+            marker=dict(color=['royalblue', 'lime'], size=6), showlegend=False, hoverinfo="skip"
         ), row=row, col=col)
 
         # Z-axis line
         fig.add_trace(go.Scatter3d(
             x=[0, 0], y=[0, 0], z=[0, 4.5], mode='lines',
-            line=dict(color='white', width=2), name="Z-axis", showlegend=False
+            line=dict(color='white', width=2), name="Z-axis", showlegend=False, hoverinfo="skip"
         ), row=row, col=col)
 
     # Pathway A: Initial m_i=3, Final m_f=2, Photon m_gamma=+1
     v_f_A = [0, 0, 2]         # J_f points straight up to z=2
     v_gam_A = [2, 0, 1]       # Photon adds +1 to z
     v_i_A = [2, 0, 3]         # Resulting J_i reaches z=3
-    add_vector_addition(fig, 1, 1, v_f_A, v_gam_A, v_i_A, "m_γ = +1")
+    add_vector_addition(fig, 1, 1, v_f_A, v_gam_A, v_i_A, "m_γ = +1", show_legend=True) # Only show legend for the first subplot
 
     # Pathway B: Initial m_i=1, Final m_f=2, Photon m_gamma=-1
     v_f_B = [0, 0, 2]         # J_f points straight up to z=2
     v_gam_B = [2, 0, -1]      # Photon subtracts -1 from z
     v_i_B = [2, 0, 1]         # Resulting J_i originates from z=1
-    add_vector_addition(fig, 1, 2, v_f_B, v_gam_B, v_i_B, "m_γ = -1")
+    add_vector_addition(fig, 1, 2, v_f_B, v_gam_B, v_i_B, "m_γ = -1", show_legend=False)
 
     fig.update_layout(
         height=450, margin=dict(l=0, r=0, b=0, t=40), paper_bgcolor="rgba(0,0,0,0)",
+        legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
         scene=dict(
             xaxis=dict(visible=False), yaxis=dict(visible=False), 
             zaxis=dict(range=[0, 4], title="Z (m projection)", showbackground=False)
@@ -520,7 +525,7 @@ def plot_cg_pathways():
             xaxis=dict(visible=False), yaxis=dict(visible=False), 
             zaxis=dict(range=[0, 4], title="Z (m projection)", showbackground=False)
         ),
-        showlegend=False
+        showlegend=True
     )
     return fig
 
