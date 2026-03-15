@@ -644,24 +644,19 @@ st.latex(r"W(\theta) = \sum_{m=-2}^{2} P(m) W_m(\theta)")
 st.write(r"For our specific $4 \rightarrow 2$ transition, expanding this sum looks like this:")
 st.latex(r"W(\theta) = P(0)W_0(\theta) + 2P(1)W_1(\theta) + 2P(2)W_2(\theta)")
 
-with st.expander("🧮 See the full, beautifully perfect algebraic derivation"):
-    st.write(r"First, we convert all the $W_m(\theta)$ radiation patterns into powers of $\cos\theta$ so we can group them:")
-    st.latex(r"W_0 \xrightarrow{\text{becomes}} 3(\cos^2\theta - \cos^4\theta)")
-    st.latex(r"W_{\pm 1} \xrightarrow{\text{becomes}} \frac{1}{2}(1 - 3\cos^2\theta + 4\cos^4\theta)")
-    st.latex(r"W_{\pm 2} \xrightarrow{\text{stays}} \frac{1}{2}(1 - \cos^4\theta)")
+with st.expander("🧮 See the full algebraic derivation"):
+    st.write(r"First, we convert all the $W_m(\theta)$ radiation patterns into powers of $\cos\theta$ so we can add them easily:")
+    st.latex(r"W_0: \sin^2\theta \cos^2\theta \xrightarrow{\text{becomes}} \cos^2\theta - \cos^4\theta")
+    st.latex(r"W_{\pm 1}: \cos^2\theta + \cos^2(2\theta) \xrightarrow{\text{becomes}} 1 - 3\cos^2\theta + 4\cos^4\theta")
+    st.latex(r"W_{\pm 2}: 1 - \cos^4\theta \xrightarrow{\text{stays}} 1 - \cos^4\theta")
     
-    st.write(r"Next, we plug in the exact $P(m)$ percentages from Step 2 ($\frac{15}{63}$, $\frac{14}{63}$, and $\frac{10}{63}$):")
-    st.latex(r"W(\theta) \propto \underbrace{\frac{15}{63} \Big[3(\cos^2\theta - \cos^4\theta)\Big]}_{m=0 \text{ contribution}} + \underbrace{2\left(\frac{14}{63}\right) \Big[\frac{1}{2}(1 - 3\cos^2\theta + 4\cos^4\theta)\Big]}_{m=\pm 1 \text{ contribution}} + \underbrace{2\left(\frac{10}{63}\right) \Big[\frac{1}{2}(1 - \cos^4\theta)\Big]}_{m=\pm 2 \text{ contribution}}")
+    st.write(r"Next, we substitute these into our weighted sum equation using the specific population weights $P(m)$ calculated by the Clebsch-Gordan coefficients:")
+    st.latex(r"W(\theta) \propto \underbrace{c_0(\cos^2\theta - \cos^4\theta)}_{m=0 \text{ contribution}} + \underbrace{c_1(1 - 3\cos^2\theta + 4\cos^4\theta)}_{m=\pm 1 \text{ contribution}} + \underbrace{c_2(1 - \cos^4\theta)}_{m=\pm 2 \text{ contribution}}")
     
-    st.write(r"By factoring out $\frac{1}{63}$ from the entire equation, the internal fractions disappear:")
-    st.latex(r"W(\theta) \propto 45(\cos^2\theta - \cos^4\theta) + 14(1 - 3\cos^2\theta + 4\cos^4\theta) + 10(1 - \cos^4\theta)")
-
     st.write(r"Finally, we group the terms by their power of $\cos\theta$:")
-    st.latex(r"\text{Constants: } 14 + 10 = 24")
-    st.latex(r"\cos^2\theta \text{ terms: } 45 - 42 = 3")
-    st.latex(r"\cos^4\theta \text{ terms: } -45 + 56 - 10 = 1")
-    
-    st.write(r"The complete sum collapses into exactly $24 + 3\cos^2\theta + \cos^4\theta$. Dividing by 24 to normalize it gives the final formula!")
+    st.latex(r"\text{Constant: } c_1 + c_2")
+    st.latex(r"\cos^2\theta \text{ terms: } c_0 - 3c_1")
+    st.latex(r"\cos^4\theta \text{ terms: } -c_0 + 4c_1 - c_2")
 
 st.write(
     r"When nuclear physicists execute this summation, the highly directional individual patterns "
@@ -670,7 +665,8 @@ st.write(
 st.latex(r"W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)")
 
 st.write(
-    r"As we just proved with the raw algebra, expanding and normalizing those constants results in the exact, elegant formula:"
+    r"When you crunch the exact Clebsch-Gordan fractions for those constants and normalize the equation, "
+    r"all the messy terms collapse into the beautiful, final observable formula:"
 )
 st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
 
@@ -701,100 +697,4 @@ st.plotly_chart(plot_final_correlation(), use_container_width=True, key="p_final
 st.write(
     r"By writing out the math, we can see exactly how the deep crevices of the single $1 - \cos^4\theta$ pattern "
     r"are filled in by the other substates, leaving the gentle, observable 'peanut' shape of the macroscopic $W(\theta)$ correlation."
-)
-
-st.subheader("Step 3: Radiation Patterns of the Substates W_m(θ)")
-st.write(
-    "Now, the aligned $J=2$ intermediate state decays to the $J_f=0$ ground state by emitting $\\gamma_2$. "
-    "The angular distribution $W_m(\\theta)$ of $\\gamma_2$ depends entirely on the tilt ($m$) it originated from. "
-    "For an $L_2=2$ (E2) transition to a $J=0$ state, the radiation patterns are derived from **Vector Spherical Harmonics**."
-)
-
-with st.expander("🔍 Deep Dive: How do Vector Spherical Harmonics generate these equations?"):
-    st.write(
-        "If you've studied electron orbitals, you know **Scalar Spherical Harmonics** ($Y_{l,m}$). "
-        "They describe the 3D shape of a field with only magnitude (like a probability cloud). "
-        "But a photon is an electromagnetic wave; it has an electric and magnetic field pointing in specific directions (polarization). "
-        "To describe a vector field, we need **Vector Spherical Harmonics** ($\\mathbf{X}_{L,m}$)."
-    )
-    st.markdown(
-        """
-        1. **Building the Vector:** The math literally multiplies the spatial shape ($Y_{l,m}$) by the photon's intrinsic spin-1 vector. 
-        2. **Squaring for Intensity:** A detector doesn't measure the raw electric field; it measures the *intensity* (power) of the wave. To get the intensity $W_m(\\theta)$, we calculate the absolute square of the vector field's magnitude in the far distance: $W_m(\\theta) \propto |\\mathbf{X}_{L,m}(\\theta, \\phi)|^2$.
-        3. **The Result:** When you square those complex vectors, the math simplifies beautifully into pure trigonometric polynomials!
-        """
-    )
-
-st.write("For our E2 transition, squaring the Vector Spherical Harmonics yields these exact intensity profiles:")
-st.latex(r"W_{m=0}(\theta) \propto \sin^2\theta \cos^2\theta")
-st.latex(r"W_{m=\pm 1}(\theta) \propto \cos^2\theta + \cos^2(2\theta)")
-st.latex(r"W_{m=\pm 2}(\theta) \propto 1 - \cos^4\theta")
-st.write(
-    "*(Notice that your intuitive $1 - \cos^4\\theta$ pattern from the earlier animation is specifically the emission profile from the $m=\\pm 2$ substates!)*"
-)
-
-
-st.subheader("Step 4: The Weighted Macroscopic Average")
-st.write(
-    "The final detector measures the average of all these patterns, weighted by the percentages $P(m)$ "
-    "we calculated in Step 2. Mathematically, this is the dot product of the populations and their specific radiation patterns:"
-)
-st.latex(r"W(\theta) = \sum_{m=-2}^{2} P(m) W_m(\theta)")
-
-st.write("For our specific $4 \rightarrow 2$ transition, expanding this sum looks like this:")
-st.latex(r"W(\theta) = P(0)W_0(\theta) + 2P(1)W_1(\theta) + 2P(2)W_2(\theta)")
-
-with st.expander("🧮 See the full algebraic derivation"):
-    st.write("First, we convert all the $W_m(\theta)$ radiation patterns into powers of $\cos\theta$ so we can add them easily:")
-    st.latex(r"W_0: \sin^2\theta \cos^2\theta \xrightarrow{\text{becomes}} \cos^2\theta - \cos^4\theta")
-    st.latex(r"W_{\pm 1}: \cos^2\theta + \cos^2(2\theta) \xrightarrow{\text{becomes}} 1 - 3\cos^2\theta + 4\cos^4\theta")
-    st.latex(r"W_{\pm 2}: 1 - \cos^4\theta \xrightarrow{\text{stays}} 1 - \cos^4\theta")
-    
-    st.write("Next, we substitute these into our weighted sum equation using the specific population weights $P(m)$ calculated by the Clebsch-Gordan coefficients:")
-    st.latex(r"W(\theta) \propto \underbrace{c_0(\cos^2\theta - \cos^4\theta)}_{m=0 \text{ contribution}} + \underbrace{c_1(1 - 3\cos^2\theta + 4\cos^4\theta)}_{m=\pm 1 \text{ contribution}} + \underbrace{c_2(1 - \cos^4\theta)}_{m=\pm 2 \text{ contribution}}")
-    
-    st.write("Finally, we group the terms by their power of $\cos\theta$:")
-    st.latex(r"\text{Constant: } c_1 + c_2")
-    st.latex(r"\cos^2\theta \text{ terms: } c_0 - 3c_1")
-    st.latex(r"\cos^4\theta \text{ terms: } -c_0 + 4c_1 - c_2")
-
-st.write(
-    "When nuclear physicists execute this summation, the highly directional individual patterns "
-    "smooth out into a combination of even Legendre polynomials $P_k(\cos\theta)$:"
-)
-st.latex(r"W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)")
-
-st.write(
-    "When you crunch the exact Clebsch-Gordan fractions for those constants and normalize the equation, "
-    "all the messy terms collapse into the beautiful, final observable formula:"
-)
-st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
-
-def plot_final_correlation():
-    theta_deg = np.linspace(0, 360, 721)
-    theta_rad = np.deg2rad(theta_deg)
-    # The mathematical formula we just derived
-    W = 1 + (1 / 8.0) * (np.cos(theta_rad) ** 2) + (1 / 24.0) * (np.cos(theta_rad) ** 4)
-    W = W / np.max(W) 
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=W, theta=theta_deg, mode="lines", line=dict(color="gold", width=4),
-        fill="toself", fillcolor="rgba(255,215,0,0.30)"
-    ))
-    fig.update_layout(
-        title="Final Macroscopic Angular Correlation W(θ)",
-        polar=dict(
-            radialaxis=dict(visible=False, range=[0, 1.05]),
-            angularaxis=dict(direction="counterclockwise", rotation=0),
-        ),
-        height=400, paper_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=50, b=10)
-    )
-    return fig
-
-st.plotly_chart(plot_final_correlation(), use_container_width=True, key="p_final_fixed")
-
-st.write(
-    "By writing out the math, we can see exactly how the deep crevices of the single $1 - \cos^4\theta$ pattern "
-    "are filled in by the other substates, leaving the gentle, observable 'peanut' shape of the macroscopic $W(\theta)$ correlation."
 )
