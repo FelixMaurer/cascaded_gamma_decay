@@ -441,6 +441,16 @@ st.write(
     "$P(m)$ is the percentage of nuclei in our sample that end up with a specific tilt "
     "after emitting the first photon."
 )
+
+st.info(
+    """
+    **Visualizing Angular Momentum vs. Flight Path** \n
+    In the plots below, the vectors represent **angular momentum**, not physical movement. 
+    Even though the photon flies perfectly straight along the $z$-axis, it is an E2 photon carrying total angular momentum $L=2$. 
+    Because its projection along its flight path can only be $m_\gamma = \pm 1$, its angular momentum vector must be **tilted** to account for the missing length!
+    """
+)
+
 st.write(
     "To find these percentages, we use **Clebsch-Gordan (CG) coefficients**. Because angular momentum is strictly conserved, "
     "the initial state vector must be the exact sum of the final state and the emitted photon ($\\vec{J}_i = \\vec{J}_f + \\vec{L}_\\gamma$). "
@@ -456,14 +466,14 @@ def plot_cg_pathways():
         fig.add_trace(go.Scatter3d(
             x=[0, v_f[0]], y=[0, v_f[1]], z=[0, v_f[2]], mode='lines+markers',
             line=dict(color='lime', width=6), marker=dict(size=5, color='lime'), 
-            name="Final J_f", legendgroup="jf", showlegend=show_legend
+            name="Final J_f (J=2)", legendgroup="jf", showlegend=show_legend
         ), row=row, col=col)
         
         # 2. Photon (starts at tip of J_f, goes to tip of J_i to complete the triangle)
         fig.add_trace(go.Scatter3d(
             x=[v_f[0], v_i[0]], y=[v_f[1], v_i[1]], z=[v_f[2], v_i[2]], mode='lines',
             line=dict(color='yellow', width=5, dash='dash'), 
-            name="Photon (L_γ)", legendgroup="gam", showlegend=show_legend
+            name="Photon Angular Momentum (L=2)", legendgroup="gam", showlegend=show_legend
         ), row=row, col=col)
         
         # Cone for photon direction
@@ -477,10 +487,10 @@ def plot_cg_pathways():
         fig.add_trace(go.Scatter3d(
             x=[0, v_i[0]], y=[0, v_i[1]], z=[0, v_i[2]], mode='lines+markers',
             line=dict(color='royalblue', width=6), marker=dict(size=5, color='royalblue'), 
-            name="Initial J_i", legendgroup="ji", showlegend=show_legend
+            name="Initial J_i (J=4)", legendgroup="ji", showlegend=show_legend
         ), row=row, col=col)
 
-        # 4. Projection lines to the Z-axis to prove the math
+        # 4. Projection lines to the Z-axis
         fig.add_trace(go.Scatter3d(
             x=[v_i[0], 0], y=[v_i[1], 0], z=[v_i[2], v_i[2]], mode='lines',
             line=dict(color='royalblue', width=2, dash='dot'), showlegend=False, hoverinfo="skip"
@@ -502,16 +512,17 @@ def plot_cg_pathways():
             line=dict(color='white', width=2), name="Z-axis", showlegend=False, hoverinfo="skip"
         ), row=row, col=col)
 
+    # Mathematically accurate vector lengths for J=4 and J=2
     # Pathway A: Initial m_i=3, Final m_f=2, Photon m_gamma=+1
-    v_f_A = [0, 0, 2]         # J_f points straight up to z=2
-    v_gam_A = [2, 0, 1]       # Photon adds +1 to z
-    v_i_A = [2, 0, 3]         # Resulting J_i reaches z=3
-    add_vector_addition(fig, 1, 1, v_f_A, v_gam_A, v_i_A, "m_γ = +1", show_legend=True) # Only show legend for the first subplot
+    v_f_A = [0, 0, 2]         # J_f=2, m_f=2 (points straight up)
+    v_i_A = [2.64, 0, 3]      # J_i=4, m_i=3 (x^2 + z^2 = 16)
+    v_gam_A = [2.64, 0, 1]    # v_i - v_f
+    add_vector_addition(fig, 1, 1, v_f_A, v_gam_A, v_i_A, "m_γ = +1", show_legend=True)
 
     # Pathway B: Initial m_i=1, Final m_f=2, Photon m_gamma=-1
-    v_f_B = [0, 0, 2]         # J_f points straight up to z=2
-    v_gam_B = [2, 0, -1]      # Photon subtracts -1 from z
-    v_i_B = [2, 0, 1]         # Resulting J_i originates from z=1
+    v_f_B = [0, 0, 2]         # J_f=2, m_f=2 
+    v_i_B = [3.87, 0, 1]      # J_i=4, m_i=1 (x^2 + z^2 = 16)
+    v_gam_B = [3.87, 0, -1]   # v_i - v_f
     add_vector_addition(fig, 1, 2, v_f_B, v_gam_B, v_i_B, "m_γ = -1", show_legend=False)
 
     fig.update_layout(
