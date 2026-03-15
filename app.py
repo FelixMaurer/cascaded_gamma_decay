@@ -436,10 +436,10 @@ st.write(
 
 st.subheader("Step 2: Substate Populations P(m) & Clebsch-Gordan Pathways")
 st.write(
-    "What is a substate population $P(m)$? Intuitively, the magnetic substate $m$ represents the "
-    "**tilt** (the $z$-axis projection) of the total nuclear spin. "
-    "$P(m)$ is the percentage of nuclei in our sample that end up with a specific tilt "
-    "after emitting the first photon."
+    r"What is a substate population $P(m)$? Intuitively, the magnetic substate $m$ represents the "
+    r"**tilt** (the $z$-axis projection) of the total nuclear spin. "
+    r"$P(m)$ is the percentage of nuclei in our sample that end up with a specific tilt "
+    r"after emitting the first photon."
 )
 
 st.info(
@@ -455,9 +455,9 @@ st.info(
 show_cones = st.checkbox("Show Quantum Precession Cones", value=False, key="chk_cones")
 
 st.write(
-    "To find the substate percentages, we use **Clebsch-Gordan (CG) coefficients**. Because angular momentum is strictly conserved, "
-    "the initial state vector must be the exact sum of the final state and the emitted photon ($\\vec{J}_i = \\vec{J}_f + \\vec{L}_\\gamma$). "
-    "There are multiple geometric pathways to reach the exact same final state. Look at the two vector additions below:"
+    r"To find the substate percentages, we use **Clebsch-Gordan (CG) coefficients**. Because angular momentum is strictly conserved, "
+    r"the initial state vector must be the exact sum of the final state and the emitted photon ($\vec{J}_i = \vec{J}_f + \vec{L}_\gamma$). "
+    r"There are multiple geometric pathways to reach the exact same final state. Look at the two vector additions below:"
 )
 
 def plot_cg_pathways(show_cones):
@@ -570,37 +570,137 @@ def plot_cg_pathways(show_cones):
 st.plotly_chart(plot_cg_pathways(show_cones), use_container_width=True, key="p_cg")
 
 st.write(
-    "Because multiple initial states can lead to the exact same final state, we must **sum over all possibilities**. "
-    "The CG coefficients calculate the exact geometrical probability of each specific triangle forming:"
+    r"Because multiple initial states can lead to the exact same final state, we must **sum over all possibilities**. "
+    r"The CG coefficients calculate the exact geometrical probability of each specific triangle forming:"
 )
 st.latex(r"P(m) \propto \sum_{m_i=-4}^{4} |\langle J_i, m_i \ | \ J, m ; L_1, m_\gamma \rangle|^2")
 
-with st.expander("🧮 Deep Dive: What does the Bra-Ket actually calculate?"):
+with st.expander("🧮 Deep Dive: Calculating the Bra-Ket Coefficients"):
     st.write(
-        "The equation for the population $P(m)$ uses Dirac bra-ket notation: $\\langle J_i, m_i \\ | \\ J, m ; L_1, m_\\gamma \\rangle$. "
-        "Here is what that actually means in physics:"
+        r"The equation for the population $P(m)$ uses Dirac bra-ket notation: $\langle J_i, m_i \ | \ J, m ; L_1, m_\gamma \rangle$. "
+        r"Here is what that actually calculates:"
     )
     st.markdown(
-        """
-        * **The Bra $\\langle J_i, m_i |$:** This represents the completely coupled, starting state of the nucleus before it decays (our $J=4$ state).
-        * **The Ket $| J, m ; L_1, m_\\gamma \\rangle$:** This represents the "uncoupled" final state, where the nucleus ($J=2$) and the photon ($L=2$) exist as separate entities with their own individual tilts.
-        * **The Overlap:** The entire bracket $\\langle ... | ... \\rangle$ calculates the **overlap integral** (the quantum probability amplitude). It tells us how perfectly these two distinct physical states match mathematically. 
-        
-        **Let's calculate one exact pathway:**
-        If we want to find the probability of ending up in the $m=2$ substate via a photon with helicity $m_\\gamma = +1$, the initial state must have been $m_i = 3$ (because $2 + 1 = 3$). 
-        
-        We look up the standard Clebsch-Gordan coefficient for coupling a $J=2$ vector and an $L=2$ vector to form a $J_i=4$ vector:
+        r"""
+        * **The Bra $\langle J_i, m_i |$:** Represents the starting state of the nucleus before it decays (our $J_i=4$ state).
+        * **The Ket $| J, m ; L_1, m_\gamma \rangle$:** Represents the "uncoupled" final state, where the nucleus ($J=2$) and the photon ($L_1=2$) exist as separate entities with their own individual tilts.
+        * **The Overlap Integral:** The entire bracket $\langle \dots | \dots \rangle$ calculates how perfectly these two distinct geometric states match. Squaring it gives the true physical probability.
         """
     )
-    st.latex(r"\langle 4, 3 \ | \ 2, 2 ; 2, 1 \rangle = \frac{1}{\sqrt{2}}")
-    st.write(
-        "We square this amplitude to get the physical probability for this specific geometric pathway: $(1/\\sqrt{2})^2 = 1/2$. "
-        "By calculating and summing these squared coefficients for *every* allowed pathway, we map out the final population percentages $P(m)$!"
-    )
+    st.write(r"**Calculating the $m=2$ substate population:**")
+    st.write(r"There are only two ways to land on $m=2$ via our $z$-axis photon ($m_\gamma = \pm 1$). We calculate the squared coefficient for both pathways and add them together:")
+    st.latex(r"\text{Pathway A } (m_\gamma = +1): |\langle 4, 3 \ | \ 2, 2 ; 2, 1 \rangle|^2 = 1/2")
+    st.latex(r"\text{Pathway B } (m_\gamma = -1): |\langle 4, 1 \ | \ 2, 2 ; 2, -1 \rangle|^2 = 1/14")
+    st.latex(r"\text{Total } P(2) \propto \frac{1}{2} + \frac{1}{14} = \frac{4}{7} \equiv \frac{20}{35}")
+    
+    st.write(r"**Repeating this sum for every substate $m$ yields the exact relative populations:**")
+    st.latex(r"P(\pm 2) \propto \frac{20}{35} \qquad P(\pm 1) \propto \frac{28}{35} \qquad P(0) \propto \frac{30}{35}")
+    
+    st.write(r"To get the final normalized percentages, we divide by the total sum ($126/35$):")
+    st.latex(r"P(\pm 2) = \frac{10}{63} \qquad P(\pm 1) = \frac{14}{63} \qquad P(0) = \frac{15}{63}")
 
 st.write(
-    "By plugging in $J_i=4$, $J=2$, $L_1=2$ (E2 photon), and $m_\\gamma = \\pm 1$, the math heavily favors specific tilts. "
-    "The resulting populations $P(m)$ for the intermediate $J=2$ state are not equal; the nuclear ensemble is now physically **aligned**."
+    r"The resulting populations $P(m)$ for the intermediate $J=2$ state are not equal; "
+    r"the nuclear ensemble is now physically **aligned**."
+)
+
+st.subheader("Step 3: Radiation Patterns of the Substates W_m(θ)")
+st.write(
+    r"Now, the aligned $J=2$ intermediate state decays to the $J_f=0$ ground state by emitting $\gamma_2$. "
+    r"The angular distribution $W_m(\theta)$ of $\gamma_2$ depends entirely on the tilt ($m$) it originated from. "
+    r"For an $L_2=2$ (E2) transition to a $J=0$ state, the radiation patterns are derived from **Vector Spherical Harmonics**."
+)
+
+with st.expander("🔍 Deep Dive: How do Vector Spherical Harmonics generate these equations?"):
+    st.write(
+        r"If you've studied electron orbitals, you know **Scalar Spherical Harmonics** ($Y_{l,m}$). "
+        r"They describe the 3D shape of a field with only magnitude (like a probability cloud). "
+        r"But a photon is an electromagnetic wave; it has an electric and magnetic field pointing in specific directions (polarization). "
+        r"To describe a vector field, we need **Vector Spherical Harmonics** ($\mathbf{X}_{L,m}$)."
+    )
+    st.markdown(
+        r"""
+        1. **Building the Vector:** The math literally multiplies the spatial shape ($Y_{l,m}$) by the photon's intrinsic spin-1 vector. 
+        2. **Squaring for Intensity:** A detector doesn't measure the raw electric field; it measures the *intensity* (power) of the wave. To get the intensity $W_m(\theta)$, we calculate the absolute square of the vector field's magnitude in the far distance: $W_m(\theta) \propto |\mathbf{X}_{L,m}(\theta, \phi)|^2$.
+        3. **The Result:** When you square those complex vectors, the math simplifies beautifully into pure trigonometric polynomials!
+        """
+    )
+
+st.write(r"For our E2 transition, squaring and normalizing the Vector Spherical Harmonics yields these exact intensity profiles:")
+st.latex(r"W_0(\theta) = 3(\sin^2\theta \cos^2\theta)")
+st.latex(r"W_{\pm 1}(\theta) = \frac{1}{2}(\cos^2\theta + \cos^2(2\theta))")
+st.latex(r"W_{\pm 2}(\theta) = \frac{1}{2}(1 - \cos^4\theta)")
+st.write(
+    r"*(Notice that your intuitive $1 - \cos^4\theta$ pattern from the earlier animation is specifically the emission profile from the $m=\pm 2$ substates!)*"
+)
+
+st.subheader("Step 4: The Weighted Macroscopic Average")
+st.write(
+    r"The final detector measures the average of all these patterns, weighted by the percentages $P(m)$ "
+    r"we calculated in Step 2. Mathematically, this is the dot product of the populations and their specific radiation patterns:"
+)
+st.latex(r"W(\theta) = \sum_{m=-2}^{2} P(m) W_m(\theta)")
+
+st.write(r"For our specific $4 \rightarrow 2$ transition, expanding this sum looks like this:")
+st.latex(r"W(\theta) = P(0)W_0(\theta) + 2P(1)W_1(\theta) + 2P(2)W_2(\theta)")
+
+with st.expander("🧮 See the full, beautifully perfect algebraic derivation"):
+    st.write(r"First, we convert all the $W_m(\theta)$ radiation patterns into powers of $\cos\theta$ so we can group them:")
+    st.latex(r"W_0 \xrightarrow{\text{becomes}} 3(\cos^2\theta - \cos^4\theta)")
+    st.latex(r"W_{\pm 1} \xrightarrow{\text{becomes}} \frac{1}{2}(1 - 3\cos^2\theta + 4\cos^4\theta)")
+    st.latex(r"W_{\pm 2} \xrightarrow{\text{stays}} \frac{1}{2}(1 - \cos^4\theta)")
+    
+    st.write(r"Next, we plug in the exact $P(m)$ percentages from Step 2 ($\frac{15}{63}$, $\frac{14}{63}$, and $\frac{10}{63}$):")
+    st.latex(r"W(\theta) \propto \underbrace{\frac{15}{63} \Big[3(\cos^2\theta - \cos^4\theta)\Big]}_{m=0 \text{ contribution}} + \underbrace{2\left(\frac{14}{63}\right) \Big[\frac{1}{2}(1 - 3\cos^2\theta + 4\cos^4\theta)\Big]}_{m=\pm 1 \text{ contribution}} + \underbrace{2\left(\frac{10}{63}\right) \Big[\frac{1}{2}(1 - \cos^4\theta)\Big]}_{m=\pm 2 \text{ contribution}}")
+    
+    st.write(r"By factoring out $\frac{1}{63}$ from the entire equation, the internal fractions disappear:")
+    st.latex(r"W(\theta) \propto 45(\cos^2\theta - \cos^4\theta) + 14(1 - 3\cos^2\theta + 4\cos^4\theta) + 10(1 - \cos^4\theta)")
+
+    st.write(r"Finally, we group the terms by their power of $\cos\theta$:")
+    st.latex(r"\text{Constants: } 14 + 10 = 24")
+    st.latex(r"\cos^2\theta \text{ terms: } 45 - 42 = 3")
+    st.latex(r"\cos^4\theta \text{ terms: } -45 + 56 - 10 = 1")
+    
+    st.write(r"The complete sum collapses into exactly $24 + 3\cos^2\theta + \cos^4\theta$. Dividing by 24 to normalize it gives the final formula!")
+
+st.write(
+    r"When nuclear physicists execute this summation, the highly directional individual patterns "
+    r"smooth out into a combination of even Legendre polynomials $P_k(\cos\theta)$:"
+)
+st.latex(r"W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)")
+
+st.write(
+    r"As we just proved with the raw algebra, expanding and normalizing those constants results in the exact, elegant formula:"
+)
+st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
+
+def plot_final_correlation():
+    theta_deg = np.linspace(0, 360, 721)
+    theta_rad = np.deg2rad(theta_deg)
+    # The mathematical formula we just derived
+    W = 1 + (1 / 8.0) * (np.cos(theta_rad) ** 2) + (1 / 24.0) * (np.cos(theta_rad) ** 4)
+    W = W / np.max(W) 
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatterpolar(
+        r=W, theta=theta_deg, mode="lines", line=dict(color="gold", width=4),
+        fill="toself", fillcolor="rgba(255,215,0,0.30)"
+    ))
+    fig.update_layout(
+        title="Final Macroscopic Angular Correlation W(θ)",
+        polar=dict(
+            radialaxis=dict(visible=False, range=[0, 1.05]),
+            angularaxis=dict(direction="counterclockwise", rotation=0),
+        ),
+        height=400, paper_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=50, b=10)
+    )
+    return fig
+
+st.plotly_chart(plot_final_correlation(), use_container_width=True, key="p_final_fixed")
+
+st.write(
+    r"By writing out the math, we can see exactly how the deep crevices of the single $1 - \cos^4\theta$ pattern "
+    r"are filled in by the other substates, leaving the gentle, observable 'peanut' shape of the macroscopic $W(\theta)$ correlation."
 )
 
 st.subheader("Step 3: Radiation Patterns of the Substates W_m(θ)")
