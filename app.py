@@ -673,29 +673,50 @@ st.latex(r"W(\theta) = \sum_{m=-2}^{2} P(m) W_m(\theta)")
 st.write(r"For our specific $4 \rightarrow 2$ transition, expanding this sum looks like this:")
 st.latex(r"W(\theta) = P(0)W_0(\theta) + 2P(1)W_1(\theta) + 2P(2)W_2(\theta)")
 
-with st.expander("🧮 See the full algebraic derivation"):
-    st.write(r"First, we convert all the $W_m(\theta)$ radiation patterns into powers of $\cos\theta$ so we can add them easily:")
-    st.latex(r"W_0: \sin^2\theta \cos^2\theta \xrightarrow{\text{becomes}} \cos^2\theta - \cos^4\theta")
-    st.latex(r"W_{\pm 1}: \cos^2\theta + \cos^2(2\theta) \xrightarrow{\text{becomes}} 1 - 3\cos^2\theta + 4\cos^4\theta")
-    st.latex(r"W_{\pm 2}: 1 - \cos^4\theta \xrightarrow{\text{stays}} 1 - \cos^4\theta")
+with st.expander("🧮 See the full, beautifully perfect algebraic derivation"):
+    st.write(r"First, we convert all the $W_m(\theta)$ radiation patterns into powers of $\cos\theta$ so we can group them:")
+    st.latex(r"W_0 \xrightarrow{\text{becomes}} 3(\cos^2\theta - \cos^4\theta)")
+    st.latex(r"W_{\pm 1} \xrightarrow{\text{becomes}} \frac{1}{2}(1 - 3\cos^2\theta + 4\cos^4\theta)")
+    st.latex(r"W_{\pm 2} \xrightarrow{\text{stays}} \frac{1}{2}(1 - \cos^4\theta)")
     
-    st.write(r"Next, we substitute these into our weighted sum equation using the specific population weights $P(m)$ calculated by the Clebsch-Gordan coefficients:")
-    st.latex(r"W(\theta) \propto \underbrace{c_0(\cos^2\theta - \cos^4\theta)}_{m=0 \text{ contribution}} + \underbrace{c_1(1 - 3\cos^2\theta + 4\cos^4\theta)}_{m=\pm 1 \text{ contribution}} + \underbrace{c_2(1 - \cos^4\theta)}_{m=\pm 2 \text{ contribution}}")
+    st.write(r"Next, we plug in the exact $P(m)$ percentages from Step 2 ($\frac{15}{63}$, $\frac{14}{63}$, and $\frac{10}{63}$):")
+    st.latex(r"W(\theta) \propto \underbrace{\frac{15}{63} \Big[3(\cos^2\theta - \cos^4\theta)\Big]}_{m=0 \text{ contribution}} + \underbrace{2\left(\frac{14}{63}\right) \Big[\frac{1}{2}(1 - 3\cos^2\theta + 4\cos^4\theta)\Big]}_{m=\pm 1 \text{ contribution}} + \underbrace{2\left(\frac{10}{63}\right) \Big[\frac{1}{2}(1 - \cos^4\theta)\Big]}_{m=\pm 2 \text{ contribution}}")
     
+    st.write(r"By factoring out $\frac{1}{63}$ from the entire equation, the internal fractions disappear:")
+    st.latex(r"W(\theta) \propto 45(\cos^2\theta - \cos^4\theta) + 14(1 - 3\cos^2\theta + 4\cos^4\theta) + 10(1 - \cos^4\theta)")
+
     st.write(r"Finally, we group the terms by their power of $\cos\theta$:")
-    st.latex(r"\text{Constant: } c_1 + c_2")
-    st.latex(r"\cos^2\theta \text{ terms: } c_0 - 3c_1")
-    st.latex(r"\cos^4\theta \text{ terms: } -c_0 + 4c_1 - c_2")
+    st.latex(r"\text{Constants: } 14 + 10 = 24")
+    st.latex(r"\cos^2\theta \text{ terms: } 45 - 42 = 3")
+    st.latex(r"\cos^4\theta \text{ terms: } -45 + 56 - 10 = 1")
+    
+    st.write(r"The complete summation collapses into exactly $24 + 3\cos^2\theta + \cos^4\theta$.")
 
 st.write(
-    r"When nuclear physicists execute this summation, the highly directional individual patterns "
-    r"smooth out into a combination of even Legendre polynomials $P_k(\cos\theta)$:"
+    r"When nuclear physicists write this final formula, they don't use raw powers of $\cos\theta$. "
+    r"Instead, they map the equation into **Legendre Polynomials** ($P_k(\cos\theta)$), because these polynomials are mathematically orthogonal and represent pure multipole radiation shapes:"
 )
 st.latex(r"W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)")
 
+with st.expander("📐 Extracting the Constants A₂ and A₄"):
+    st.write(r"The standard Legendre polynomials for quadrupole radiation are defined as:")
+    st.latex(r"P_2(\cos\theta) = \frac{1}{2}(3\cos^2\theta - 1)")
+    st.latex(r"P_4(\cos\theta) = \frac{1}{8}(35\cos^4\theta - 30\cos^2\theta + 3)")
+    
+    st.write(r"We want to find $A_2$ and $A_4$ such that our standard Legendre formula matches the raw algebraic sum we just derived (up to a normalization constant $K$):")
+    st.latex(r"K \Big[ 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta) \Big] = 24 + 3\cos^2\theta + \cos^4\theta")
+    
+    st.write(r"By expanding the $P_2$ and $P_4$ polynomials and equating the coefficients for the $\cos^4\theta$, $\cos^2\theta$, and constant terms on both sides, we get a simple system of three equations:")
+    st.latex(r"\cos^4\theta \text{ terms: } K \left(\frac{35}{8} A_4 \right) = 1")
+    st.latex(r"\cos^2\theta \text{ terms: } K \left(\frac{3}{2} A_2 - \frac{15}{4} A_4 \right) = 3")
+    st.latex(r"\text{Constants: } K \left(1 - \frac{1}{2} A_2 + \frac{3}{8} A_4 \right) = 24")
+
+    st.write(r"Solving this system yields the exact theoretical constants for the $4 \rightarrow 2$ cascade:")
+    st.latex(r"A_2 = \frac{5}{49} \approx 0.102 \qquad A_4 = \frac{4}{441} \approx 0.0091")
+
 st.write(
-    r"When you crunch the exact Clebsch-Gordan fractions for those constants and normalize the equation, "
-    r"all the messy terms collapse into the beautiful, final observable formula:"
+    r"To get our equation ready for plotting, we simply divide our raw polynomial $24 + 3\cos^2\theta + \cos^4\theta$ by 24 "
+    r"(which forces the constant term to 1). This leaves us with the beautiful, final observable formula:"
 )
 st.latex(r"W(\theta) = 1 + \frac{1}{8}\cos^2\theta + \frac{1}{24}\cos^4\theta")
 
