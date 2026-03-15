@@ -575,43 +575,59 @@ st.write(
 )
 st.latex(r"P(m) \propto \sum_{m_i=-4}^{4} |\langle J_i, m_i \ | \ J, m ; L_1, m_\gamma \rangle|^2")
 
-with st.expander("🧮 Deep Dive: Explicit Calculation of All Bra-Ket Coefficients"):
+with st.expander("🧮 Deep Dive: Wigner-Eckart, Wigner's Formula, and the Exact Math"):
+    st.markdown(r"**1. Why is it only proportional ($\propto$)?**")
     st.write(
-        r"The equation for the population $P(m)$ uses Dirac bra-ket notation: $\langle J_i, m_i \ | \ J, m ; L_1, m_\gamma \rangle$. "
-        r"This overlap integral calculates how perfectly the initial coupled state matches the final uncoupled state."
+        r"According to the **Wigner-Eckart Theorem**, any quantum transition amplitude separates into two distinct parts:"
     )
     st.markdown(
         r"""
-        Because our defining $z$-axis restricts the photon's helicity to $m_\gamma = \pm 1$, there are exactly two geometric pathways to reach any final substate $m$. The initial state *must* have been either $m_i = m+1$ or $m_i = m-1$. 
-        
-        Therefore, the total probability for any state $P(m)$ is the sum of those two squared Clebsch-Gordan (CG) coefficients:
+        * **The Physics (Reduced Matrix Element):** Describes the actual internal restructuring of the protons and neutrons (often written as $\langle J_f || E2 || J_i \rangle$).
+        * **The Geometry (Clebsch-Gordan Coefficient):** Describes how the 3D angular momentum vectors align.
         """
+    )
+    st.write(
+        r"Because our sample is initially unpolarized, every starting substate ($m_i = -4$ to $4$) has an equal $1/9$ chance of occurring. "
+        r"Since the *Physics* part and this $1/9$ population factor are identical for every final substate $m$, we lump them together into an unknown proportionality constant. "
+        r"By calculating only the *Geometry* and normalizing the results to 100% at the end, that unknown constant mathematically cancels itself out!"
+    )
+
+    st.markdown(r"**2. How does the Bra-Ket resolve?**")
+    st.write(
+        r"The bracket $\langle J_i, m_i \ | \ J, m ; L_1, m_\gamma \rangle$ is the formal definition of a Clebsch-Gordan coefficient. "
+        r"It acts as a quantum dot-product between the coupled and uncoupled basis states. "
+        r"Under the hood, this resolves into a real number via **Wigner's Formula**—a massive algebraic sum of factorials derived from the commutation rules of angular momentum operators:"
+    )
+    st.latex(r"\langle j_1 m_1 j_2 m_2 | J M \rangle = \sqrt{\frac{(J+j_1-j_2)! (J-j_1+j_2)! (j_1+j_2-J)! (2J+1)}{(j_1+j_2+J+1)!}} \times \sum_k (\dots \text{factorials})")
+    st.write(
+        r"Because calculating these factorial sums by hand is punishing, physicists use pre-derived tables to find the exact square-root fractions. "
+        r"For our specific $z$-axis setup ($m_\gamma = \pm 1$), there are only two geometric pathways to reach any final substate $m$ (from $m_i = m+1$ and $m_i = m-1$). "
+        r"We sum the squared CG coefficients of these two pathways:"
     )
     st.latex(r"P(m) \propto \underbrace{|\langle 4, m+1 \ | \ 2, m ; 2, 1 \rangle|^2}_{\text{via } m_\gamma = +1} + \underbrace{|\langle 4, m-1 \ | \ 2, m ; 2, -1 \rangle|^2}_{\text{via } m_\gamma = -1}")
     
-    st.write(r"By looking up the standard CG coefficients for a $2 \otimes 2 \rightarrow 4$ angular momentum addition, we can calculate the exact probabilities for every possible tilt:")
+    st.markdown(r"**3. Calculating the exact substate percentages:**")
     
-    st.markdown(r"**1. Calculating the $m=2$ substate:**")
+    st.write(r"**For the $m=2$ substate:**")
     st.latex(r"P(2) \propto |\langle 4, 3 \ | \ 2, 2 ; 2, 1 \rangle|^2 + |\langle 4, 1 \ | \ 2, 2 ; 2, -1 \rangle|^2")
     st.latex(r"P(2) \propto \left(\sqrt{\frac{1}{2}}\right)^2 + \left(\sqrt{\frac{1}{14}}\right)^2 = \frac{7}{14} + \frac{1}{14} = \frac{8}{14} \equiv \mathbf{\frac{20}{35}}")
 
-    st.markdown(r"**2. Calculating the $m=1$ substate:**")
+    st.write(r"**For the $m=1$ substate:**")
     st.latex(r"P(1) \propto |\langle 4, 2 \ | \ 2, 1 ; 2, 1 \rangle|^2 + |\langle 4, 0 \ | \ 2, 1 ; 2, -1 \rangle|^2")
     st.latex(r"P(1) \propto \left(\sqrt{\frac{8}{14}}\right)^2 + \left(\sqrt{\frac{16}{70}}\right)^2 = \frac{40}{70} + \frac{16}{70} = \frac{56}{70} \equiv \mathbf{\frac{28}{35}}")
 
-    st.markdown(r"**3. Calculating the $m=0$ substate:**")
+    st.write(r"**For the $m=0$ substate:**")
     st.latex(r"P(0) \propto |\langle 4, 1 \ | \ 2, 0 ; 2, 1 \rangle|^2 + |\langle 4, -1 \ | \ 2, 0 ; 2, -1 \rangle|^2")
     st.latex(r"P(0) \propto \left(\sqrt{\frac{6}{14}}\right)^2 + \left(\sqrt{\frac{6}{14}}\right)^2 = \frac{30}{70} + \frac{30}{70} = \frac{60}{70} \equiv \mathbf{\frac{30}{35}}")
 
     st.write(r"*(Because space is symmetric, the negative states $P(-1)$ and $P(-2)$ have the exact same probabilities as their positive counterparts.)*")
 
-    st.markdown(r"**4. Normalizing the final percentages:**")
-    st.write(r"To find the true percentage of the ensemble in each state, we divide by the total sum of all possible outcomes ($P(2) + P(1) + P(0) + P(-1) + P(-2)$):")
+    st.write(r"**Normalizing to 100%:**")
+    st.write(r"To cancel out the unknown Wigner-Eckart proportionality constant, we divide our values by the sum of all possible outcomes ($P(2) + P(1) + P(0) + P(-1) + P(-2)$):")
     st.latex(r"\text{Total Sum} = \frac{20 + 28 + 30 + 28 + 20}{35} = \frac{126}{35}")
     
-    st.write(r"Dividing our individual probabilities by this total gives the final, normalized substate population fractions:")
+    st.write(r"Dividing each probability by this total yields the final, physical substate populations:")
     st.latex(r"P(\pm 2) = \mathbf{\frac{10}{63}} \qquad P(\pm 1) = \mathbf{\frac{14}{63}} \qquad P(0) = \mathbf{\frac{15}{63}}")
-
 st.write(
     r"The resulting populations $P(m)$ for the intermediate $J=2$ state are not equal; "
     r"the nuclear ensemble is now physically **aligned**."
