@@ -225,6 +225,12 @@ with col3:
 
 st.divider()
 
+st.header("4. Animated Emission Waves")
+st.write(
+    "Press **Play** below to watch how the stretched nucleus radiating energy squeezes back into a spherical shape. "
+    "Observe the specific angular lobes of the emitted photons traveling outward."
+)
+
 def plot_animated_emission(beta_in, beta_out, wave_type="E2", title="Transition"):
     fig = go.Figure()
     
@@ -333,11 +339,7 @@ with col4c:
 
 st.divider()
 
-st.header("4. Animated Emission Waves")
-st.write(
-    "Press **Play** below to watch how the stretched nucleus radiating energy squeezes back into a spherical shape. "
-    "Observe the specific angular lobes of the emitted photons traveling outward."
-)
+
 
 # --- START DROP-IN EXPLANATION ---
 with st.expander("💡 Wait, neutrons are neutral! Why does the charge distribution change?"):
