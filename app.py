@@ -241,10 +241,15 @@ def plot_animated_emission(beta_in, beta_out, wave_type="E2", title="Transition"
     num_frames = 30
     
     # Calculate initial shapes
-    x_in = (1 / np.sqrt(1 - beta_in)) * np.cos(t)
-    y_in = (1 - beta_in) * np.sin(t)
-    
-    # Base Wave (hidden initially at nucleus edge)
+    if wave_type == "E2":
+        x_in = (1 / np.sqrt(1 - beta_in)) * np.cos(t)
+        y_in = (1 - beta_in) * np.sin(t)
+    else:
+        # E1: Start spherical, center of charge will slosh
+        x_in = np.cos(t)
+        y_in = np.sin(t)
+        
+    # Base Wave 
     r_base_init = 1.0
     if wave_type == "E2":
         r_wave_init = r_base_init + 1.5 * np.abs(np.sin(2*t))
@@ -253,7 +258,6 @@ def plot_animated_emission(beta_in, beta_out, wave_type="E2", title="Transition"
         r_wave_init = r_base_init + 1.8 * np.abs(np.cos(t))
         wave_color = 'rgba(255, 100, 50, {opacity})'
         
-    # Add initial traces. Order matters for frame updates: [0] is Wave, [1] is Nucleus
     fig.add_trace(go.Scatter(x=r_wave_init*np.cos(t), y=r_wave_init*np.sin(t), mode='lines', 
                              line=dict(color=wave_color.format(opacity=1.0), dash='dot', width=3), 
                              name='Wave', showlegend=False, hoverinfo="skip"))
@@ -264,15 +268,21 @@ def plot_animated_emission(beta_in, beta_out, wave_type="E2", title="Transition"
     # Generate Frames
     frames = []
     for i in range(num_frames):
-        # Progress from 0.0 to 1.0
         tau = i / (num_frames - 1)
         
-        # 1. Squeeze the nucleus
-        beta_curr = beta_in + (beta_out - beta_in) * tau
-        x_nuc = (1 / np.sqrt(1 - beta_curr)) * np.cos(t)
-        y_nuc = (1 - beta_curr) * np.sin(t)
+        if wave_type == "E2":
+            # Quadrupole: Symmetrical stretching/squeezing
+            beta_curr = beta_in + (beta_out - beta_in) * tau
+            x_nuc = (1 / np.sqrt(1 - beta_curr)) * np.cos(t)
+            y_nuc = (1 - beta_curr) * np.sin(t)
+        else:
+            # Dipole: Symmetrical shape, but center of charge sloshes back and forth
+            slosh_amplitude = 0.5
+            slosh = slosh_amplitude * np.sin(tau * 4 * np.pi) # 2 full up/down oscillations
+            x_nuc = np.cos(t)
+            y_nuc = np.sin(t) + slosh
         
-        # 2. Expand and fade the wave
+        # Expand and fade the wave
         opacity = max(0.0, 1.0 - tau)
         r_base = 1.0 + 4.0 * tau
         
@@ -302,13 +312,11 @@ def plot_animated_emission(beta_in, beta_out, wave_type="E2", title="Transition"
             y=-0.1, x=0.5, xanchor="center", yanchor="top",
             direction="left",
             buttons=[
-                dict(label="▶ Play",
-                     method="animate",
+                dict(label="▶ Play", method="animate",
                      args=[None, dict(frame=dict(duration=40, redraw=False), 
                                       transition=dict(duration=0),
                                       fromcurrent=True, mode="immediate")]),
-                dict(label="⏸ Pause",
-                     method="animate",
+                dict(label="⏸ Pause", method="animate",
                      args=[[None], dict(frame=dict(duration=0, redraw=False), 
                                         mode="immediate", transition=dict(duration=0))])
             ]
@@ -358,10 +366,6 @@ with st.expander("💡 Wait, neutrons are neutral! Why does the charge distribut
         Because tracking the movement of 28 individual core protons is a mathematical nightmare, nuclear physicists use a trick called **effective charge** ($e_{eff}$). Instead of calculating the core's deformation, they pretend the core stays perfectly spherical and assign a fake electric charge (usually around $+0.5e$) to the valence neutrons. This perfectly accounts for the amount of core-proton-drag they create.
         """
     )
-# --- END DROP-IN EXPLANATION ---
-
-def plot_animated_emission(beta_in, beta_out, wave_type="E2", title="Transition"):
-# ... (rest of the function continues here)
 
 # =====================================================================
 # Section 5: The Mathematical Derivation of W(theta)
