@@ -606,13 +606,30 @@ st.subheader("Step 3: Radiation Patterns of the Substates W_m(θ)")
 st.write(
     "Now, the aligned $J=2$ intermediate state decays to the $J_f=0$ ground state by emitting $\\gamma_2$. "
     "The angular distribution $W_m(\\theta)$ of $\\gamma_2$ depends entirely on the tilt ($m$) it originated from. "
-    "For an $L_2=2$ (E2) transition to a $J=0$ state, the radiation patterns are derived from Vector Spherical Harmonics:"
+    "For an $L_2=2$ (E2) transition to a $J=0$ state, the radiation patterns are derived from **Vector Spherical Harmonics**."
 )
+
+with st.expander("🔍 Deep Dive: How do Vector Spherical Harmonics generate these equations?"):
+    st.write(
+        "If you've studied electron orbitals, you know **Scalar Spherical Harmonics** ($Y_{l,m}$). "
+        "They describe the 3D shape of a field with only magnitude (like a probability cloud). "
+        "But a photon is an electromagnetic wave; it has an electric and magnetic field pointing in specific directions (polarization). "
+        "To describe a vector field, we need **Vector Spherical Harmonics** ($\\mathbf{X}_{L,m}$)."
+    )
+    st.markdown(
+        """
+        1. **Building the Vector:** The math literally multiplies the spatial shape ($Y_{l,m}$) by the photon's intrinsic spin-1 vector. 
+        2. **Squaring for Intensity:** A detector doesn't measure the raw electric field; it measures the *intensity* (power) of the wave. To get the intensity $W_m(\\theta)$, we calculate the absolute square of the vector field's magnitude in the far distance: $W_m(\\theta) \propto |\\mathbf{X}_{L,m}(\\theta, \\phi)|^2$.
+        3. **The Result:** When you square those complex vectors, the math simplifies beautifully into pure trigonometric polynomials!
+        """
+    )
+
+st.write("For our E2 transition, squaring the Vector Spherical Harmonics yields these exact intensity profiles:")
 st.latex(r"W_{m=0}(\theta) \propto \sin^2\theta \cos^2\theta")
 st.latex(r"W_{m=\pm 1}(\theta) \propto \cos^2\theta + \cos^2(2\theta)")
 st.latex(r"W_{m=\pm 2}(\theta) \propto 1 - \cos^4\theta")
 st.write(
-    "*(Notice that your intuitive $1 - \cos^4\\theta$ pattern is specifically the emission profile from the $m=\\pm 2$ substates!)*"
+    "*(Notice that your intuitive $1 - \cos^4\\theta$ pattern from the earlier animation is specifically the emission profile from the $m=\\pm 2$ substates!)*"
 )
 
 st.subheader("Step 4: The Weighted Macroscopic Average")
