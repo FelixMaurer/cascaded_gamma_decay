@@ -225,15 +225,6 @@ with col3:
 
 st.divider()
 
-# =====================================================================
-# Section 4: Animated Charge Distribution & EM Waves
-# =====================================================================
-st.header("4. Animated Emission Waves")
-st.write(
-    "Press **Play** below to watch how the stretched nucleus radiating energy squeezes back into a spherical shape. "
-    "Observe the specific angular lobes of the emitted photons traveling outward."
-)
-
 def plot_animated_emission(beta_in, beta_out, wave_type="E2", title="Transition"):
     fig = go.Figure()
     
@@ -327,17 +318,17 @@ def plot_animated_emission(beta_in, beta_out, wave_type="E2", title="Transition"
 col4a, col4b, col4c = st.columns(3)
 with col4a:
     st.subheader("1st Emission: J=4 → J=2")
-    st.markdown("**1173 keV** | $\Delta J = 2 \rightarrow L = 2$ (E2)")
+    st.markdown("**1173 keV** | $\Delta J = 2 \\rightarrow L = 2$ (E2)")
     st.plotly_chart(plot_animated_emission(0.4, 0.2, "E2", "E2 Quadrupole Animation"), use_container_width=True, key="p_em1")
 
 with col4b:
     st.subheader("2nd Emission: J=2 → J=0")
-    st.markdown("**1333 keV** | $\Delta J = 2 \rightarrow$ strictly $L = 2$ (E2)")
+    st.markdown("**1333 keV** | $\Delta J = 2 \\rightarrow$ strictly $L = 2$ (E2)")
     st.plotly_chart(plot_animated_emission(0.2, 0.0, "E2", "E2 Quadrupole Animation"), use_container_width=True, key="p_em2")
 
 with col4c:
     st.subheader("Comparison Example")
-    st.markdown("Hypothetical | $\Delta J = 1 \rightarrow L = 1$ (E1)")
+    st.markdown("Hypothetical | $\Delta J = 1 \\rightarrow L = 1$ (E1)")
     st.plotly_chart(plot_animated_emission(0.3, 0.1, "E1", "E1 Dipole Animation"), use_container_width=True, key="p_em3")
 
 st.divider()
