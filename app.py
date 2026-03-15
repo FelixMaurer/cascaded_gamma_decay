@@ -444,24 +444,55 @@ st.write(
 
 st.info(
     """
-    **Visualizing Angular Momentum vs. Flight Path** \n
-    In the plots below, the vectors represent **angular momentum**, not physical movement. 
-    Even though the photon flies perfectly straight along the $z$-axis, it is an E2 photon carrying total angular momentum $L=2$. 
-    Because its projection along its flight path can only be $m_\gamma = \pm 1$, its angular momentum vector must be **tilted** to account for the missing length!
+    **The Quantum Precession Cone** \n
+    In quantum mechanics, an angular momentum vector can **never** point perfectly straight along an axis! 
+    Because its true length is $\sqrt{J(J+1)}$, it is always longer than its maximum $z$-projection ($m$). 
+    The Uncertainty Principle dictates that the vector must tilt and "precess" (spin like a top) around the $z$-axis, tracing out a cone.
     """
 )
 
+show_cones = st.checkbox("Show Quantum Precession Cones", value=False, key="chk_cones")
+
 st.write(
-    "To find these percentages, we use **Clebsch-Gordan (CG) coefficients**. Because angular momentum is strictly conserved, "
+    "To find the substate percentages, we use **Clebsch-Gordan (CG) coefficients**. Because angular momentum is strictly conserved, "
     "the initial state vector must be the exact sum of the final state and the emitted photon ($\\vec{J}_i = \\vec{J}_f + \\vec{L}_\\gamma$). "
-    "However, there are multiple geometric pathways to reach the exact same final state. Look at the two vector additions below:"
+    "There are multiple geometric pathways to reach the exact same final state. Look at the two vector additions below:"
 )
 
-def plot_cg_pathways():
+def plot_cg_pathways(show_cones):
     fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'scene'}, {'type': 'scene'}]], 
                         subplot_titles=("Pathway A: m_i=3 → m_f=2", "Pathway B: m_i=1 → m_f=2"))
 
-    def add_vector_addition(fig, row, col, v_f, v_gam, v_i, m_gam_label, show_legend):
+    def get_cone_surface(z_height, radius, points=30):
+        theta = np.linspace(0, 2*np.pi, points)
+        # Handle zero height to avoid division by zero
+        if z_height == 0:
+            z_vals = np.array([0, 0])
+        else:
+            z_vals = np.linspace(0, z_height, points)
+        Theta, Z = np.meshgrid(theta, z_vals)
+        R = (Z / z_height) * radius if z_height != 0 else 0
+        X = R * np.cos(Theta)
+        Y = R * np.sin(Theta)
+        return X, Y, Z
+
+    def add_vector_addition(fig, row, col, v_f, v_gam, v_i, m_gam_label, show_legend, mag_f, mag_i):
+        # Optional: Draw the precession cones
+        if show_cones:
+            rad_f = np.sqrt(max(0, mag_f**2 - v_f[2]**2))
+            Xf, Yf, Zf = get_cone_surface(v_f[2], rad_f)
+            fig.add_trace(go.Surface(
+                x=Xf, y=Yf, z=Zf, colorscale=[[0, 'lime'], [1, 'lime']], 
+                opacity=0.2, showscale=False, hoverinfo="skip"
+            ), row=row, col=col)
+            
+            rad_i = np.sqrt(max(0, mag_i**2 - v_i[2]**2))
+            Xi, Yi, Zi = get_cone_surface(v_i[2], rad_i)
+            fig.add_trace(go.Surface(
+                x=Xi, y=Yi, z=Zi, colorscale=[[0, 'royalblue'], [1, 'royalblue']], 
+                opacity=0.15, showscale=False, hoverinfo="skip"
+            ), row=row, col=col)
+
         # 1. Final State J_f (starts at origin)
         fig.add_trace(go.Scatter3d(
             x=[0, v_f[0]], y=[0, v_f[1]], z=[0, v_f[2]], mode='lines+markers',
@@ -469,7 +500,7 @@ def plot_cg_pathways():
             name="Final J_f (J=2)", legendgroup="jf", showlegend=show_legend
         ), row=row, col=col)
         
-        # 2. Photon (starts at tip of J_f, goes to tip of J_i to complete the triangle)
+        # 2. Photon (starts at tip of J_f, goes to tip of J_i)
         fig.add_trace(go.Scatter3d(
             x=[v_f[0], v_i[0]], y=[v_f[1], v_i[1]], z=[v_f[2], v_i[2]], mode='lines',
             line=dict(color='yellow', width=5, dash='dash'), 
@@ -483,7 +514,7 @@ def plot_cg_pathways():
             colorscale=[[0, 'yellow'], [1, 'yellow']], showscale=False, hoverinfo="skip"
         ), row=row, col=col)
 
-        # 3. Initial State J_i (starts at origin, forms the resultant vector)
+        # 3. Initial State J_i (starts at origin)
         fig.add_trace(go.Scatter3d(
             x=[0, v_i[0]], y=[0, v_i[1]], z=[0, v_i[2]], mode='lines+markers',
             line=dict(color='royalblue', width=6), marker=dict(size=5, color='royalblue'), 
@@ -512,18 +543,27 @@ def plot_cg_pathways():
             line=dict(color='white', width=2), name="Z-axis", showlegend=False, hoverinfo="skip"
         ), row=row, col=col)
 
-    # Mathematically accurate vector lengths for J=4 and J=2
+    # True Quantum Magnitudes: sqrt(J(J+1))
+    mag_f = np.sqrt(2 * 3) # J=2 -> ~2.45
+    mag_i = np.sqrt(4 * 5) # J=4 -> ~4.47
+
     # Pathway A: Initial m_i=3, Final m_f=2, Photon m_gamma=+1
-    v_f_A = [0, 0, 2]         # J_f=2, m_f=2 (points straight up)
-    v_i_A = [2.64, 0, 3]      # J_i=4, m_i=3 (x^2 + z^2 = 16)
-    v_gam_A = [2.64, 0, 1]    # v_i - v_f
-    add_vector_addition(fig, 1, 1, v_f_A, v_gam_A, v_i_A, "m_γ = +1", show_legend=True)
+    rad_f_A = np.sqrt(mag_f**2 - 2**2)
+    rad_i_A = np.sqrt(mag_i**2 - 3**2)
+    
+    v_f_A = [rad_f_A, 0, 2]         
+    v_i_A = [rad_i_A, 0, 3]         
+    v_gam_A = [v_i_A[0]-v_f_A[0], 0, 1]    
+    add_vector_addition(fig, 1, 1, v_f_A, v_gam_A, v_i_A, "m_γ = +1", show_legend=True, mag_f=mag_f, mag_i=mag_i)
 
     # Pathway B: Initial m_i=1, Final m_f=2, Photon m_gamma=-1
-    v_f_B = [0, 0, 2]         # J_f=2, m_f=2 
-    v_i_B = [3.87, 0, 1]      # J_i=4, m_i=1 (x^2 + z^2 = 16)
-    v_gam_B = [3.87, 0, -1]   # v_i - v_f
-    add_vector_addition(fig, 1, 2, v_f_B, v_gam_B, v_i_B, "m_γ = -1", show_legend=False)
+    rad_f_B = np.sqrt(mag_f**2 - 2**2)
+    rad_i_B = np.sqrt(mag_i**2 - 1**2)
+
+    v_f_B = [rad_f_B, 0, 2]         
+    v_i_B = [rad_i_B, 0, 1]         
+    v_gam_B = [v_i_B[0]-v_f_B[0], 0, -1]   
+    add_vector_addition(fig, 1, 2, v_f_B, v_gam_B, v_i_B, "m_γ = -1", show_legend=False, mag_f=mag_f, mag_i=mag_i)
 
     fig.update_layout(
         height=450, margin=dict(l=0, r=0, b=0, t=40), paper_bgcolor="rgba(0,0,0,0)",
@@ -540,7 +580,7 @@ def plot_cg_pathways():
     )
     return fig
 
-st.plotly_chart(plot_cg_pathways(), use_container_width=True, key="p_cg")
+st.plotly_chart(plot_cg_pathways(show_cones), use_container_width=True, key="p_cg")
 
 st.write(
     "Because multiple initial states can lead to the exact same final state, we must **sum over all possibilities**. "
