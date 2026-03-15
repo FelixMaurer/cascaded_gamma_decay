@@ -380,27 +380,28 @@ st.write(
 def plot_quantization_axis():
     fig = go.Figure()
     
-    # Randomly oriented nuclear spins (faded)
-    np.random.seed(42)
-    for _ in range(5):
-        u = np.random.uniform(-1, 1, 3)
-        u = u / np.linalg.norm(u)
-        fig.add_trace(go.Scatter3d(
-            x=[0, u[0]*2], y=[0, u[1]*2], z=[0, u[2]*2], mode='lines',
-            line=dict(color='rgba(100, 150, 255, 0.4)', width=4), showlegend=False, hoverinfo="skip"
-        ))
+    # Initial random spin J_i
+    fig.add_trace(go.Scatter3d(
+        x=[0, -2], y=[0, 2], z=[0, 1.5], mode='lines',
+        line=dict(color='royalblue', width=6), name="Initial Random Spin (J_i=4)"
+    ))
+    fig.add_trace(go.Cone(
+        x=[-2], y=[2], z=[1.5], u=[-2], v=[2], w=[1.5],
+        sizemode="absolute", sizeref=0.4, anchor="tip",
+        colorscale=[[0, 'royalblue'], [1, 'royalblue']], showscale=False, hoverinfo="skip"
+    ))
 
     # Nucleus
     fig.add_trace(go.Scatter3d(
         x=[0], y=[0], z=[0], mode='markers',
-        marker=dict(size=15, color='royalblue', line=dict(color='white', width=2)),
+        marker=dict(size=12, color='gray', line=dict(color='white', width=2)),
         name="Nucleus"
     ))
     
     # Gamma 1 defining the Z-axis
     fig.add_trace(go.Scatter3d(
         x=[0, 0], y=[0, 0], z=[0, 4], mode='lines',
-        line=dict(color='yellow', width=6, dash='dot'), name="γ₁ Flight Path (z-axis)"
+        line=dict(color='yellow', width=6, dash='dot'), name="γ₁ Flight Path defines Z-Axis"
     ))
     fig.add_trace(go.Cone(
         x=[0], y=[0], z=[4], u=[0], v=[0], w=[2],
@@ -408,12 +409,12 @@ def plot_quantization_axis():
         colorscale=[[0, 'yellow'], [1, 'yellow']], showscale=False, hoverinfo="skip"
     ))
 
-    # X and Y reference axes
-    fig.add_trace(go.Scatter3d(x=[0, 3], y=[0, 0], z=[0, 0], mode='lines', line=dict(color='gray', width=2), name="x-axis"))
-    fig.add_trace(go.Scatter3d(x=[0, 0], y=[0, 3], z=[0, 0], mode='lines', line=dict(color='gray', width=2), name="y-axis"))
+    # X and Y reference axes (faint)
+    fig.add_trace(go.Scatter3d(x=[0, 3], y=[0, 0], z=[0, 0], mode='lines', line=dict(color='rgba(100,100,100,0.5)', width=2), showlegend=False))
+    fig.add_trace(go.Scatter3d(x=[0, 0], y=[0, 3], z=[0, 0], mode='lines', line=dict(color='rgba(100,100,100,0.5)', width=2), showlegend=False))
 
     fig.update_layout(
-        title="Detector 1 defines the Coordinate System",
+        title="Detector 1 Freezes the Coordinate System",
         scene=dict(
             xaxis=dict(range=[-4, 4], showbackground=False, visible=False),
             yaxis=dict(range=[-4, 4], showbackground=False, visible=False),
@@ -433,25 +434,83 @@ st.write(
     "This restriction forces the nucleus into specific alignments relative to this new $z$-axis."
 )
 
-st.subheader("Step 2: Substate Populations P(m) & Clebsch-Gordan Coefficients")
+st.subheader("Step 2: Substate Populations P(m) & Clebsch-Gordan Pathways")
 st.write(
     "What is a substate population $P(m)$? Intuitively, the magnetic substate $m$ represents the "
-    "**tilt** or projection of the total nuclear spin along our newly defined $z$-axis. "
-    "$P(m)$ is simply the percentage of nuclei in our sample that end up with that specific tilt "
+    "**tilt** (the $z$-axis projection) of the total nuclear spin. "
+    "$P(m)$ is the percentage of nuclei in our sample that end up with a specific tilt "
     "after emitting the first photon."
 )
 st.write(
-    "To find these percentages, we use **Clebsch-Gordan (CG) coefficients**. Think of these as "
-    "the mathematical rules for 3D quantum geometry. Because angular momentum must be strictly conserved "
-    "during the emission ($J_{initial} = J_{final} + L_{photon}$), the CG coefficients calculate the exact "
-    "probability amplitude that specific initial and final tilts can geometrically snap together. "
-    "Squaring this amplitude gives us the physical probability $P(m)$:"
+    "To find these percentages, we use **Clebsch-Gordan (CG) coefficients**. Because angular momentum projection "
+    "must be strictly conserved ($m_i = m_f + m_\\gamma$), there are multiple geometric pathways to reach "
+    "the same final state. Look at the two examples below:"
+)
+
+def plot_cg_pathways():
+    fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'scene'}, {'type': 'scene'}]], 
+                        subplot_titles=("Pathway A: m_i=3 → m_f=2", "Pathway B: m_i=1 → m_f=2"))
+
+    # Helper to draw vectors
+    def add_spin_vector(fig, row, col, z_val, length, color, name):
+        # Calculate x, y to maintain total length
+        xy_len = np.sqrt(max(0, length**2 - z_val**2))
+        x_val = xy_len * 0.707 # 45 degree angle for visibility
+        y_val = xy_len * 0.707
+        
+        fig.add_trace(go.Scatter3d(
+            x=[0, x_val], y=[0, y_val], z=[0, z_val], mode='lines',
+            line=dict(color=color, width=6), name=name
+        ), row=row, col=col)
+        # Projection line
+        fig.add_trace(go.Scatter3d(
+            x=[x_val, 0], y=[y_val, 0], z=[z_val, z_val], mode='lines',
+            line=dict(color=color, width=2, dash='dot'), showlegend=False
+        ), row=row, col=col)
+
+    # Pathway A: J_i=4 (m=3) -> J=2 (m=2) via photon m=1
+    add_spin_vector(fig, 1, 1, 3.0, 4.0, 'royalblue', "Initial J_i=4 (m_i=3)")
+    add_spin_vector(fig, 1, 1, 2.0, 2.0, 'lime', "Final J=2 (m_f=2)")
+    # Photon vector
+    fig.add_trace(go.Scatter3d(
+        x=[0, 0], y=[0, 0], z=[2, 3], mode='lines',
+        line=dict(color='yellow', width=4, dash='dash'), name="Photon (m_γ = +1)"
+    ), row=1, col=1)
+
+    # Pathway B: J_i=4 (m=1) -> J=2 (m=2) via photon m=-1
+    add_spin_vector(fig, 1, 2, 1.0, 4.0, 'royalblue', "Initial J_i=4 (m_i=1)")
+    add_spin_vector(fig, 1, 2, 2.0, 2.0, 'lime', "Final J=2 (m_f=2)")
+    # Photon vector
+    fig.add_trace(go.Scatter3d(
+        x=[0, 0], y=[0, 0], z=[2, 1], mode='lines',
+        line=dict(color='orange', width=4, dash='dash'), name="Photon (m_γ = -1)"
+    ), row=1, col=2)
+
+    # Add Z-axes
+    for c in [1, 2]:
+        fig.add_trace(go.Scatter3d(
+            x=[0, 0], y=[0, 0], z=[0, 4], mode='lines',
+            line=dict(color='white', width=2), name="Z-axis", showlegend=(c==1)
+        ), row=1, col=c)
+
+    fig.update_layout(
+        height=400, margin=dict(l=0, r=0, b=0, t=40), paper_bgcolor="rgba(0,0,0,0)",
+        scene=dict(xaxis=dict(visible=False), yaxis=dict(visible=False), zaxis=dict(range=[0, 4], title="Z (m projection)")),
+        scene2=dict(xaxis=dict(visible=False), yaxis=dict(visible=False), zaxis=dict(range=[0, 4], title="Z (m projection)")),
+        showlegend=False
+    )
+    return fig
+
+st.plotly_chart(plot_cg_pathways(), use_container_width=True, key="p_cg")
+
+st.write(
+    "Because multiple initial states can lead to the exact same final state, we must **sum over all possibilities**. "
+    "The CG coefficients calculate the geometrical probability of each pathway occurring:"
 )
 st.latex(r"P(m) \propto \sum_{m_i=-4}^{4} |\langle J_i, m_i \ | \ J, m ; L_1, m_\gamma \rangle|^2")
 st.write(
-    "By plugging in $J_i=4$, $J=2$, $L_1=2$ (E2 photon), and restricting the photon's spin projection to "
-    "$m_\\gamma = \\pm 1$ (from Step 1), the geometry heavily favors specific final tilts. "
-    "The resulting populations $P(m)$ for the intermediate $J=2$ state are not equal; the nuclear ensemble is now **aligned**."
+    "By plugging in $J_i=4$, $J=2$, $L_1=2$ (E2 photon), and $m_\\gamma = \\pm 1$, the math heavily favors specific tilts. "
+    "The resulting populations $P(m)$ for the intermediate $J=2$ state are not equal; the nuclear ensemble is now physically **aligned**."
 )
 
 st.subheader("Step 3: Radiation Patterns of the Substates W_m(θ)")
@@ -474,7 +533,7 @@ st.write(
 )
 st.latex(r"W(\theta) = \sum_{m=-2}^{2} P(m) W_m(\theta)")
 st.write(
-    "When nuclear physicists execute this summation (often simplified using Racah or Wigner 6-j symbols), "
+    "When nuclear physicists execute this summation, "
     "the highly directional individual patterns smooth out into a combination of even Legendre polynomials $P_k(\\cos\\theta)$:"
 )
 st.latex(r"W(\theta) = 1 + A_2 P_2(\cos\theta) + A_4 P_4(\cos\theta)")
