@@ -442,61 +442,84 @@ st.write(
     "after emitting the first photon."
 )
 st.write(
-    "To find these percentages, we use **Clebsch-Gordan (CG) coefficients**. Because angular momentum projection "
-    "must be strictly conserved ($m_i = m_f + m_\\gamma$), there are multiple geometric pathways to reach "
-    "the same final state. Look at the two examples below:"
+    "To find these percentages, we use **Clebsch-Gordan (CG) coefficients**. Because angular momentum is strictly conserved, "
+    "the initial state vector must be the exact sum of the final state and the emitted photon ($\\vec{J}_i = \\vec{J}_f + \\vec{L}_\\gamma$). "
+    "However, there are multiple geometric pathways to reach the exact same final state. Look at the two vector additions below:"
 )
 
 def plot_cg_pathways():
     fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'scene'}, {'type': 'scene'}]], 
                         subplot_titles=("Pathway A: m_i=3 → m_f=2", "Pathway B: m_i=1 → m_f=2"))
 
-    # Helper to draw vectors
-    def add_spin_vector(fig, row, col, z_val, length, color, name):
-        # Calculate x, y to maintain total length
-        xy_len = np.sqrt(max(0, length**2 - z_val**2))
-        x_val = xy_len * 0.707 # 45 degree angle for visibility
-        y_val = xy_len * 0.707
+    def add_vector_addition(fig, row, col, v_f, v_gam, v_i, m_gam_label):
+        # 1. Final State J_f (starts at origin)
+        fig.add_trace(go.Scatter3d(
+            x=[0, v_f[0]], y=[0, v_f[1]], z=[0, v_f[2]], mode='lines+markers',
+            line=dict(color='lime', width=6), marker=dict(size=5, color='lime'), name="Final J_f"
+        ), row=row, col=col)
         
+        # 2. Photon (starts at tip of J_f, goes to tip of J_i to complete the triangle)
         fig.add_trace(go.Scatter3d(
-            x=[0, x_val], y=[0, y_val], z=[0, z_val], mode='lines',
-            line=dict(color=color, width=6), name=name
+            x=[v_f[0], v_i[0]], y=[v_f[1], v_i[1]], z=[v_f[2], v_i[2]], mode='lines',
+            line=dict(color='yellow', width=5, dash='dash'), name=f"Photon ({m_gam_label})"
         ), row=row, col=col)
-        # Projection line
-        fig.add_trace(go.Scatter3d(
-            x=[x_val, 0], y=[y_val, 0], z=[z_val, z_val], mode='lines',
-            line=dict(color=color, width=2, dash='dot'), showlegend=False
+        # Cone for photon direction
+        fig.add_trace(go.Cone(
+            x=[v_i[0]], y=[v_i[1]], z=[v_i[2]], u=[v_gam[0]], v=[v_gam[1]], w=[v_gam[2]],
+            sizemode="absolute", sizeref=0.4, anchor="tip",
+            colorscale=[[0, 'yellow'], [1, 'yellow']], showscale=False, hoverinfo="skip"
         ), row=row, col=col)
 
-    # Pathway A: J_i=4 (m=3) -> J=2 (m=2) via photon m=1
-    add_spin_vector(fig, 1, 1, 3.0, 4.0, 'royalblue', "Initial J_i=4 (m_i=3)")
-    add_spin_vector(fig, 1, 1, 2.0, 2.0, 'lime', "Final J=2 (m_f=2)")
-    # Photon vector
-    fig.add_trace(go.Scatter3d(
-        x=[0, 0], y=[0, 0], z=[2, 3], mode='lines',
-        line=dict(color='yellow', width=4, dash='dash'), name="Photon (m_γ = +1)"
-    ), row=1, col=1)
-
-    # Pathway B: J_i=4 (m=1) -> J=2 (m=2) via photon m=-1
-    add_spin_vector(fig, 1, 2, 1.0, 4.0, 'royalblue', "Initial J_i=4 (m_i=1)")
-    add_spin_vector(fig, 1, 2, 2.0, 2.0, 'lime', "Final J=2 (m_f=2)")
-    # Photon vector
-    fig.add_trace(go.Scatter3d(
-        x=[0, 0], y=[0, 0], z=[2, 1], mode='lines',
-        line=dict(color='orange', width=4, dash='dash'), name="Photon (m_γ = -1)"
-    ), row=1, col=2)
-
-    # Add Z-axes
-    for c in [1, 2]:
+        # 3. Initial State J_i (starts at origin, forms the resultant vector)
         fig.add_trace(go.Scatter3d(
-            x=[0, 0], y=[0, 0], z=[0, 4], mode='lines',
-            line=dict(color='white', width=2), name="Z-axis", showlegend=(c==1)
-        ), row=1, col=c)
+            x=[0, v_i[0]], y=[0, v_i[1]], z=[0, v_i[2]], mode='lines+markers',
+            line=dict(color='royalblue', width=6), marker=dict(size=5, color='royalblue'), name="Initial J_i"
+        ), row=row, col=col)
+
+        # 4. Projection lines to the Z-axis to prove the math
+        fig.add_trace(go.Scatter3d(
+            x=[v_i[0], 0], y=[v_i[1], 0], z=[v_i[2], v_i[2]], mode='lines',
+            line=dict(color='royalblue', width=2, dash='dot'), showlegend=False
+        ), row=row, col=col)
+        fig.add_trace(go.Scatter3d(
+            x=[v_f[0], 0], y=[v_f[1], 0], z=[v_f[2], v_f[2]], mode='lines',
+            line=dict(color='lime', width=2, dash='dot'), showlegend=False
+        ), row=row, col=col)
+        
+        # Highlight the z-axis projections with markers
+        fig.add_trace(go.Scatter3d(
+            x=[0, 0], y=[0, 0], z=[v_i[2], v_f[2]], mode='markers',
+            marker=dict(color=['royalblue', 'lime'], size=6), showlegend=False
+        ), row=row, col=col)
+
+        # Z-axis line
+        fig.add_trace(go.Scatter3d(
+            x=[0, 0], y=[0, 0], z=[0, 4.5], mode='lines',
+            line=dict(color='white', width=2), name="Z-axis", showlegend=False
+        ), row=row, col=col)
+
+    # Pathway A: Initial m_i=3, Final m_f=2, Photon m_gamma=+1
+    v_f_A = [0, 0, 2]         # J_f points straight up to z=2
+    v_gam_A = [2, 0, 1]       # Photon adds +1 to z
+    v_i_A = [2, 0, 3]         # Resulting J_i reaches z=3
+    add_vector_addition(fig, 1, 1, v_f_A, v_gam_A, v_i_A, "m_γ = +1")
+
+    # Pathway B: Initial m_i=1, Final m_f=2, Photon m_gamma=-1
+    v_f_B = [0, 0, 2]         # J_f points straight up to z=2
+    v_gam_B = [2, 0, -1]      # Photon subtracts -1 from z
+    v_i_B = [2, 0, 1]         # Resulting J_i originates from z=1
+    add_vector_addition(fig, 1, 2, v_f_B, v_gam_B, v_i_B, "m_γ = -1")
 
     fig.update_layout(
-        height=400, margin=dict(l=0, r=0, b=0, t=40), paper_bgcolor="rgba(0,0,0,0)",
-        scene=dict(xaxis=dict(visible=False), yaxis=dict(visible=False), zaxis=dict(range=[0, 4], title="Z (m projection)")),
-        scene2=dict(xaxis=dict(visible=False), yaxis=dict(visible=False), zaxis=dict(range=[0, 4], title="Z (m projection)")),
+        height=450, margin=dict(l=0, r=0, b=0, t=40), paper_bgcolor="rgba(0,0,0,0)",
+        scene=dict(
+            xaxis=dict(visible=False), yaxis=dict(visible=False), 
+            zaxis=dict(range=[0, 4], title="Z (m projection)", showbackground=False)
+        ),
+        scene2=dict(
+            xaxis=dict(visible=False), yaxis=dict(visible=False), 
+            zaxis=dict(range=[0, 4], title="Z (m projection)", showbackground=False)
+        ),
         showlegend=False
     )
     return fig
@@ -505,7 +528,7 @@ st.plotly_chart(plot_cg_pathways(), use_container_width=True, key="p_cg")
 
 st.write(
     "Because multiple initial states can lead to the exact same final state, we must **sum over all possibilities**. "
-    "The CG coefficients calculate the geometrical probability of each pathway occurring:"
+    "The CG coefficients calculate the exact geometrical probability of each specific triangle forming:"
 )
 st.latex(r"P(m) \propto \sum_{m_i=-4}^{4} |\langle J_i, m_i \ | \ J, m ; L_1, m_\gamma \rangle|^2")
 st.write(
